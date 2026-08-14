@@ -1,0 +1,65 @@
+{
+  "brand": "Sports Map & Match",
+  "nav": {
+    "findGames": "搵場",
+    "hostGame": "放場",
+    "approvals": "審批",
+    "friends": "好友",
+    "chat": "聊天",
+    "profile": "檔案",
+    "login": "登入",
+    "logout": "登出",
+    "language": "語言"
+  },
+  "home": {
+    "tagline": "拼場",
+    "headline": "香港組隊，先有波打。",
+    "lede": "放出已預訂的場地，或加入別人的局。籃球、健球、匹克球，即時拼場。",
+    "ctaHost": "我要放場",
+    "ctaJoin": "搵場加入"
+  },
+  "games": {
+    "findTitle": "搵場",
+    "findLede": "按運動、地區與日期篩選，加入開放中的局。",
+    "hostCta": "我要放場",
+    "empty": "暫時沒有符合條件的場次。",
+    "search": "搜尋",
+    "sport": "運動",
+    "district": "地區",
+    "date": "日期",
+    "filter": "篩選",
+    "clear": "清除",
+    "all": "全部",
+    "spotsLeft": "尚餘 {count} 個名額",
+    "full": "已滿",
+    "open": "開放中",
+    "fee": "費用",
+    "perPerson": "{amount}/人",
+    "host": "房主",
+    "join": "申請加入",
+    "viewDetails": "查看詳情",
+    "venue": "場地",
+    "time": "時間"
+  },
+  "auth": {
+    "loginTitle": "入場",
+    "loginLede": "用 Google 或香港手機號碼進入。也可以電郵註冊後再登入。",
+    "registerTitle": "開檔",
+    "registerLede": "建立會員檔案。Google 與手機第一次驗證即完成註冊。",
+    "googleLogin": "使用 Google 登入",
+    "googleRegister": "使用 Google 註冊",
+    "phoneLogin": "使用手機號碼登入",
+    "phoneRegister": "使用手機號碼註冊",
+    "emailLogin": "以電郵入場",
+    "emailRegister": "以電郵註冊",
+    "noAccount": "還沒有檔案？",
+    "hasAccount": "已有檔案？",
+    "register": "註冊",
+    "backHome": "返回首頁"
+  },
+  "common": {
+    "loading": "載入中…",
+    "save": "儲存",
+    "cancel": "取消"
+  }
+}

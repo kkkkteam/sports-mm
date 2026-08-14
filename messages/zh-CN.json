@@ -1,0 +1,65 @@
+{
+  "brand": "Sports Map & Match",
+  "nav": {
+    "findGames": "找场",
+    "hostGame": "放场",
+    "approvals": "审批",
+    "friends": "好友",
+    "chat": "聊天",
+    "profile": "档案",
+    "login": "登录",
+    "logout": "登出",
+    "language": "语言"
+  },
+  "home": {
+    "tagline": "拼场",
+    "headline": "香港组队，先有球打。",
+    "lede": "放出已预订的场地，或加入别人的局。篮球、健球、匹克球，即时拼场。",
+    "ctaHost": "我要放场",
+    "ctaJoin": "找场加入"
+  },
+  "games": {
+    "findTitle": "找场",
+    "findLede": "按运动、地区与日期筛选，加入开放中的局。",
+    "hostCta": "我要放场",
+    "empty": "暂时没有符合条件的场次。",
+    "search": "搜索",
+    "sport": "运动",
+    "district": "地区",
+    "date": "日期",
+    "filter": "筛选",
+    "clear": "清除",
+    "all": "全部",
+    "spotsLeft": "尚余 {count} 个名额",
+    "full": "已满",
+    "open": "开放中",
+    "fee": "费用",
+    "perPerson": "{amount}/人",
+    "host": "房主",
+    "join": "申请加入",
+    "viewDetails": "查看详情",
+    "venue": "场地",
+    "time": "时间"
+  },
+  "auth": {
+    "loginTitle": "入场",
+    "loginLede": "用 Google 或香港手机号码进入。也可以电邮注册后再登录。",
+    "registerTitle": "开档",
+    "registerLede": "建立会员档案。Google 与手机第一次验证即完成注册。",
+    "googleLogin": "使用 Google 登录",
+    "googleRegister": "使用 Google 注册",
+    "phoneLogin": "使用手机号码登录",
+    "phoneRegister": "使用手机号码注册",
+    "emailLogin": "以电邮入场",
+    "emailRegister": "以电邮注册",
+    "noAccount": "还没有档案？",
+    "hasAccount": "已有档案？",
+    "register": "注册",
+    "backHome": "返回首页"
+  },
+  "common": {
+    "loading": "加载中…",
+    "save": "保存",
+    "cancel": "取消"
+  }
+}

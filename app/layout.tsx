@@ -23,12 +23,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: LayoutProps<"/">) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html
-      lang="zh-HK"
-      className={`${anton.variable} ${noto.variable} h-full antialiased`}
-    >
+    <html className={`${anton.variable} ${noto.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full font-sans">{children}</body>
     </html>
   );

@@ -58,11 +58,50 @@ export const HK_DISTRICT_LABELS: Record<HkDistrict, string> = {
 };
 
 export const SKILL_LEVEL_LABELS: Record<SkillLevel, string> = {
-  beginner: "初學",
-  intermediate: "中等",
-  advanced: "進階",
+  beginner: "新手",
+  intermediate: "進階",
+  advanced: "高手",
   competitive: "競技",
 };
+
+export const PROFILE_SKILL_LEVELS = [
+  "beginner",
+  "intermediate",
+  "advanced",
+  "competitive",
+] as const satisfies readonly SkillLevel[];
+
+export const GENDER_LABELS: Record<Gender, string> = {
+  male: "男",
+  female: "女",
+  non_binary: "非二元",
+  prefer_not_to_say: "不透露",
+};
+
+export const GAME_STATUS_LABELS: Record<GameStatus, string> = {
+  open: "開放中",
+  full: "已滿",
+  cancelled: "已取消",
+  completed: "已完成",
+};
+
+export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
+  pending: "待審批",
+  accepted: "已接受",
+  rejected: "已拒絕",
+  withdrawn: "已撤回",
+};
+
+export const FRIENDSHIP_STATUS_LABELS: Record<FriendshipStatus, string> = {
+  pending: "待確認",
+  accepted: "已是好友",
+  blocked: "已封鎖",
+};
+
+export const HK_DISTRICT_OPTIONS = Object.entries(HK_DISTRICT_LABELS) as [
+  HkDistrict,
+  string,
+][];
 
 export interface Profile {
   id: string;

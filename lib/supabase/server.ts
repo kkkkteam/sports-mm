@@ -1,14 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { requireSupabaseEnv } from "@/lib/supabase/env";
 
 export async function createClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !key) {
-    throw new Error("缺少 NEXT_PUBLIC_SUPABASE_URL 或 NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  }
-
+  const { url, key } = requireSupabaseEnv();
   const cookieStore = await cookies();
 
   return createServerClient(url, key, {
@@ -22,7 +17,7 @@ export async function createClient() {
             cookieStore.set(name, value, options);
           });
         } catch {
-          // Server Components cannot set cookies; middleware will refresh the session.
+          // Server Components cannot set cookies; proxy will refresh the session.
         }
       },
     },

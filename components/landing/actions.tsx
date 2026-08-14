@@ -1,7 +1,13 @@
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
-export function Actions() {
+export function Actions({
+  hostHref = "/login?next=/games/new",
+  joinHref = "/games",
+}: {
+  hostHref?: string;
+  joinHref?: string;
+}) {
   return (
     <section className="grid min-h-[88vh] md:grid-cols-2">
       <article className="relative min-h-[70vh] overflow-hidden bg-ink">
@@ -24,7 +30,7 @@ export function Actions() {
             你已訂場。寫上地點、時間、缺額與分攤，等人申請加入。
           </p>
           <Link
-            href="/login"
+            href={hostHref}
             className="mt-6 inline-flex min-h-11 items-center bg-line px-6 text-sm font-bold text-ink transition-colors hover:bg-paper"
           >
             發佈場次
@@ -52,7 +58,7 @@ export function Actions() {
             按運動、地區與時間找局。房主接受後即可加入，費用一齊攤。
           </p>
           <Link
-            href="/login"
+            href={joinHref}
             className="mt-6 inline-flex min-h-11 items-center bg-line px-6 text-sm font-bold text-ink transition-colors hover:bg-paper"
           >
             瀏覽場次
