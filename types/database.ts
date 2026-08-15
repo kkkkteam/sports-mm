@@ -30,7 +30,9 @@ export type ApplicationStatus =
   | "pending"
   | "accepted"
   | "rejected"
-  | "withdrawn";
+  | "withdrawn"
+  | "waitlisted";
+export type AttendanceStatus = "pending" | "present" | "no_show";
 export type FriendshipStatus = "pending" | "accepted" | "blocked";
 export type ChatRoomType = "direct" | "group" | "game";
 export type MessageType = "text" | "system";
@@ -90,6 +92,13 @@ export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
   accepted: "已接受",
   rejected: "已拒絕",
   withdrawn: "已撤回",
+  waitlisted: "候補中",
+};
+
+export const ATTENDANCE_STATUS_LABELS: Record<AttendanceStatus, string> = {
+  pending: "未標記",
+  present: "出席",
+  no_show: "缺席",
 };
 
 export const FRIENDSHIP_STATUS_LABELS: Record<FriendshipStatus, string> = {
@@ -114,6 +123,11 @@ export interface Profile {
   games_hosted_count: number;
   games_joined_count: number;
   games_completed_count: number;
+  rating: number | null;
+  rating_count: number;
+  attendance_marked_count: number;
+  attendance_present_count: number;
+  attendance_rate: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -176,6 +190,9 @@ export interface GameParticipant {
   game_id: string;
   user_id: string;
   joined_at: string;
+  attendance_status: AttendanceStatus;
+  attendance_marked_by: string | null;
+  attendance_marked_at: string | null;
 }
 
 export interface Application {
@@ -184,8 +201,32 @@ export interface Application {
   applicant_id: string;
   message: string | null;
   status: ApplicationStatus;
+  payment_proof_url: string | null;
+  waitlisted_at: string | null;
   created_at: string;
   decided_at: string | null;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  payload: Record<string, unknown>;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface Review {
+  id: string;
+  game_id: string;
+  reviewer_id: string;
+  reviewee_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Friendship {

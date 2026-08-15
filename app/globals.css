@@ -1,36 +1,77 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #141a16;
-  --paper: #e3ebe6;
-  --line: #d7e24a;
-  --court: #1c6b44;
-  --mist: #c4d0c8;
+  /* Minimalist bright palette */
+  --canvas: #f8fafc;
+  --surface: #ffffff;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --line-subtle: #f1f5f9;
+  --accent: #2563eb;
+  --accent-soft: #dbeafe;
+
+  /* Legacy aliases → new system (gradual migration) */
+  --paper: var(--canvas);
+  --court: var(--accent);
+  --line: var(--accent-soft);
+  --mist: #e2e8f0;
 }
 
 @theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
   --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line-subtle: var(--line-subtle);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --color-paper: var(--paper);
-  --color-line: var(--line);
   --color-court: var(--court);
+  --color-line: var(--line);
   --color-mist: var(--mist);
-  --font-display: var(--font-anton), var(--font-noto);
+  --font-display: var(--font-noto);
   --font-sans: var(--font-noto);
 }
 
 html {
-  background: var(--paper);
+  background: #e2e8f0;
+  height: 100%;
 }
 
 body {
-  background: var(--paper);
+  background: #e2e8f0;
   color: var(--ink);
-  font-family: var(--font-noto), "Noto Sans TC", sans-serif;
+  font-family: var(--font-noto), "Noto Sans TC", system-ui, sans-serif;
+  min-height: 100%;
+  min-height: 100dvh;
 }
 
 ::selection {
-  background: var(--line);
+  background: var(--accent-soft);
   color: var(--ink);
+}
+
+/* Hide native scrollbars (keep scroll) */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe area helpers */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pb-tabbar {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 @keyframes rise {

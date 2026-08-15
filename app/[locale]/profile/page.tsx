@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { redirect } from "@/lib/redirect";
 import { AppNav } from "@/components/app-nav";
 import { ProfileEditor } from "@/components/profile/profile-editor";
+import { ReputationBadge } from "@/components/reputation/reputation-badge";
 import { getOrCreateProfile, getSessionUser } from "@/lib/profile";
 import type { SkillLevel, Sport, UserSportSkill } from "@/types/database";
 
@@ -39,6 +40,16 @@ export default async function ProfilePage() {
         <p className="text-[clamp(3rem,10vw,6.5rem)] font-black leading-none tracking-tight">
           檔案
         </p>
+        <div className="mt-4 flex flex-wrap items-end gap-4">
+          <h1 className="text-3xl font-black tracking-tight md:text-4xl">
+            {profile.nickname}
+          </h1>
+          <ReputationBadge
+            rating={profile.rating}
+            ratingCount={profile.rating_count}
+            attendanceRate={profile.attendance_rate}
+          />
+        </div>
 
         <section className="mt-12 grid gap-10 border-y border-ink/15 py-10 md:mt-16 md:grid-cols-2 md:gap-16">
           <div>

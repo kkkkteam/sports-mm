@@ -3,6 +3,8 @@ import { Link } from "@/i18n/navigation";
 import { redirect } from "@/lib/redirect";
 import { AppNav } from "@/components/app-nav";
 import { ApplicationActions } from "@/components/host/application-actions";
+import { PaymentProofLink } from "@/components/games/payment-proof-link";
+import { ReputationBadge } from "@/components/reputation/reputation-badge";
 import { formatHkDateTime } from "@/lib/format";
 import { getOrCreateProfile, getSessionUser } from "@/lib/profile";
 import {
@@ -25,7 +27,10 @@ type HostGame = Game & {
 };
 
 type HostApplication = Application & {
-  profiles: Pick<Profile, "nickname"> | null;
+  profiles: Pick<
+    Profile,
+    "nickname" | "rating" | "rating_count" | "attendance_rate"
+  > | null;
   games: Pick<Game, "id" | "title" | "host_id"> | null;
 };
 
@@ -45,7 +50,9 @@ export default async function HostDashboardPage() {
       .order("starts_at", { ascending: false }),
     supabase
       .from("applications")
-      .select("*, profiles!applicant_id(nickname), games!inner(id, title, host_id)")
+      .select(
+        "*, profiles!applicant_id(nickname, rating, rating_count, attendance_rate), games!inner(id, title, host_id)",
+      )
       .eq("games.host_id", user.id)
       .order("created_at", { ascending: false }),
   ]);
@@ -53,6 +60,14 @@ export default async function HostDashboardPage() {
   const games = (gamesData ?? []) as HostGame[];
   const applications = (applicationsData ?? []) as HostApplication[];
   const pending = applications.filter((item) => item.status === "pending");
+  const waitlisted = applications
+    .filter((item) => item.status === "waitlisted")
+    .slice()
+    .sort((a, b) => {
+      const aTime = a.waitlisted_at ?? a.created_at;
+      const bTime = b.waitlisted_at ?? b.created_at;
+      return aTime.localeCompare(bTime);
+    });
 
   return (
     <main className="min-h-dvh bg-paper text-ink">
@@ -63,7 +78,7 @@ export default async function HostDashboardPage() {
           審批
         </h1>
         <p className="mt-3 max-w-xl text-base text-ink/70">
-          查看你放場的申請名單，接受或拒絕加入。
+          審批申請、管理名單與候補。有人退出時，首位候補會自動轉成待審批。
         </p>
 
         <section className="mt-12 md:mt-16">
@@ -85,6 +100,16 @@ export default async function HostDashboardPage() {
                     <p className="text-lg font-black">
                       {application.profiles?.nickname ?? "會員"}
                     </p>
+                    {application.profiles ? (
+                      <div className="mt-1">
+                        <ReputationBadge
+                          size="sm"
+                          rating={application.profiles.rating}
+                          ratingCount={application.profiles.rating_count}
+                          attendanceRate={application.profiles.attendance_rate}
+                        />
+                      </div>
+                    ) : null}
                     <p className="mt-1 text-sm text-ink/65">
                       申請加入{" "}
                       <Link
@@ -99,6 +124,47 @@ export default async function HostDashboardPage() {
                         「{application.message}」
                       </p>
                     ) : null}
+                    <div className="mt-2">
+                      <PaymentProofLink path={application.payment_proof_url} />
+                    </div>
+                  </div>
+                  <ApplicationActions
+                    applicationId={application.id}
+                    currentStatus={application.status as ApplicationStatus}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="mt-16">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="text-2xl font-black md:text-3xl">候補名單</h2>
+            <span className="font-display text-4xl text-court">{waitlisted.length}</span>
+          </div>
+          {waitlisted.length === 0 ? (
+            <p className="mt-6 text-ink/60">暫時沒有候補。</p>
+          ) : (
+            <ul className="mt-6 divide-y divide-ink/15 border-y border-ink/15">
+              {waitlisted.map((application, index) => (
+                <li
+                  key={application.id}
+                  className="flex flex-col gap-4 py-5 md:flex-row md:items-center md:justify-between"
+                >
+                  <div>
+                    <p className="text-lg font-black">
+                      #{index + 1} {application.profiles?.nickname ?? "會員"}
+                    </p>
+                    <p className="mt-1 text-sm text-ink/65">
+                      候補{" "}
+                      <Link
+                        href={`/games/${application.game_id}`}
+                        className="font-medium text-court hover:underline"
+                      >
+                        {application.games?.title ?? "場次"}
+                      </Link>
+                    </p>
                   </div>
                   <ApplicationActions
                     applicationId={application.id}
@@ -159,19 +225,32 @@ export default async function HostDashboardPage() {
                             key={application.id}
                             className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
                           >
-                            <p className="text-sm">
-                              <span className="font-bold">
-                                {application.profiles?.nickname ?? "會員"}
-                              </span>
-                              <span className="mx-2 text-ink/35">·</span>
-                              <span className="text-ink/60">
-                                {
-                                  APPLICATION_STATUS_LABELS[
-                                    application.status as ApplicationStatus
-                                  ]
-                                }
-                              </span>
-                            </p>
+                            <div>
+                              <p className="text-sm">
+                                <span className="font-bold">
+                                  {application.profiles?.nickname ?? "會員"}
+                                </span>
+                                <span className="mx-2 text-ink/35">·</span>
+                                <span className="text-ink/60">
+                                  {
+                                    APPLICATION_STATUS_LABELS[
+                                      application.status as ApplicationStatus
+                                    ]
+                                  }
+                                </span>
+                              </p>
+                              <div className="mt-1 flex flex-wrap items-center gap-3">
+                                {application.profiles ? (
+                                  <ReputationBadge
+                                    size="sm"
+                                    rating={application.profiles.rating}
+                                    ratingCount={application.profiles.rating_count}
+                                    attendanceRate={application.profiles.attendance_rate}
+                                  />
+                                ) : null}
+                                <PaymentProofLink path={application.payment_proof_url} />
+                              </div>
+                            </div>
                             <ApplicationActions
                               applicationId={application.id}
                               currentStatus={application.status as ApplicationStatus}

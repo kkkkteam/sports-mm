@@ -9,6 +9,13 @@ import {
   gameCostPerPerson,
 } from "@/lib/format";
 import {
+  distanceKm,
+  formatDistanceKm,
+  resolveGameLocation,
+  type LatLng,
+} from "@/lib/geo";
+import { useUserLocation } from "@/hooks/use-user-location";
+import {
   HK_DISTRICT_LABELS,
   type GameStatus,
   type HkDistrict,
@@ -35,7 +42,47 @@ function SportMark({ slug, name }: { slug?: string; name: string }) {
   );
 }
 
-export function GameCard({ game }: { game: GameListRow }) {
+function DistanceLine({
+  game,
+  userPosition,
+  locating,
+}: {
+  game: GameListRow;
+  userPosition: LatLng | null;
+  locating: boolean;
+}) {
+  const t = useTranslations("games");
+  const venue = resolveGameLocation(game);
+
+  if (locating) {
+    return <p className="text-sm text-ink/45">{t("distanceLocating")}</p>;
+  }
+
+  if (!userPosition) {
+    return <p className="text-sm text-ink/45">{t("distanceNeedPermission")}</p>;
+  }
+
+  if (!venue) {
+    return <p className="text-sm text-ink/45">{t("distanceUnknown")}</p>;
+  }
+
+  const km = distanceKm(userPosition, venue);
+  return (
+    <p className="text-sm font-bold text-ink/70">
+      {t("distanceAway", { km: formatDistanceKm(km) })}
+    </p>
+  );
+}
+
+export function GameCard({
+  game,
+  userPosition,
+  locating = false,
+}: {
+  game: GameListRow;
+  userPosition?: LatLng | null;
+  locating?: boolean;
+}) {
   const t = useTranslations("games");
   const fee = gameCostPerPerson(game);
   const district = game.district as HkDistrict;
@@ -72,6 +119,11 @@ export function GameCard({ game }: { game: GameListRow }) {
         <h2 className="text-xl font-black leading-snug tracking-tight">
           {game.venue_label}
         </h2>
+        <DistanceLine
+          game={game}
+          userPosition={userPosition ?? null}
+          locating={locating}
+        />
         <p className="text-sm font-bold text-ink/80">
           {formatHkDate(game.starts_at)} · {formatHkTime(game.starts_at)}–
           {formatHkTime(game.ends_at)}
@@ -107,18 +159,46 @@ export function GameCard({ game }: { game: GameListRow }) {
 
 export function GameGrid({ games }: { games: GameListRow[] }) {
   const t = useTranslations("games");
+  const { status, position, request } = useUserLocation(true);
+  const locating = status === "idle" || status === "locating";
 
   if (games.length === 0) {
     return <p className="py-16 text-ink/60">{t("empty")}</p>;
   }
 
+  const sorted = position
+    ? [...games].sort((a, b) => {
+        const locA = resolveGameLocation(a);
+        const locB = resolveGameLocation(b);
+        if (!locA && !locB) return 0;
+        if (!locA) return 1;
+        if (!locB) return -1;
+        return distanceKm(position, locA) - distanceKm(position, locB);
+      })
+    : games;
+
   return (
-    <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-      {games.map((game) => (
-        <li key={game.id}>
-          <GameCard game={game} />
-        </li>
-      ))}
-    </ul>
+    <div>
+      {status === "denied" || status === "unavailable" || status === "error" ? (
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border border-ink/10 bg-mist/40 px-4 py-3 text-sm">
+          <p className="text-ink/70">{t("distancePermissionHint")}</p>
+          <button
+            type="button"
+            onClick={request}
+            className="min-h-9 bg-ink px-4 text-xs font-bold text-paper transition-colors hover:bg-court"
+          >
+            {t("distanceEnable")}
+          </button>
+        </div>
+      ) : null}
+
+      <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        {sorted.map((game) => (
+          <li key={game.id}>
+            <GameCard game={game} userPosition={position} locating={locating} />
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

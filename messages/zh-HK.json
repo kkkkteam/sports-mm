@@ -1,12 +1,16 @@
 {
   "brand": "Sports Map & Match",
   "nav": {
+    "home": "首頁",
+    "map": "地圖",
+    "hostTab": "發佈",
+    "chats": "訊息",
     "findGames": "搵場",
     "hostGame": "放場",
     "approvals": "審批",
     "friends": "好友",
     "chat": "聊天",
-    "profile": "檔案",
+    "profile": "我的",
     "login": "登入",
     "logout": "登出",
     "language": "語言"
@@ -39,7 +43,13 @@
     "join": "申請加入",
     "viewDetails": "查看詳情",
     "venue": "場地",
-    "time": "時間"
+    "time": "時間",
+    "distanceAway": "距離你 {km} 公里",
+    "distanceLocating": "正在取得你的位置…",
+    "distanceNeedPermission": "開啟定位後顯示距離",
+    "distanceUnknown": "距離未知",
+    "distancePermissionHint": "允許定位後，卡片會顯示與你的距離。",
+    "distanceEnable": "開啟定位"
   },
   "auth": {
     "loginTitle": "入場",

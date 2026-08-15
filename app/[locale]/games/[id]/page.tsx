@@ -3,6 +3,10 @@ import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import { AppNav } from "@/components/app-nav";
 import { ApplyButton } from "@/components/games/apply-button";
+import { AttendancePanel } from "@/components/games/attendance-panel";
+import { CompleteGameButton } from "@/components/games/complete-game-button";
+import { ReviewPanel } from "@/components/games/review-panel";
+import { ReputationBadge } from "@/components/reputation/reputation-badge";
 import {
   formatHkDateTime,
   formatHkd,
@@ -13,10 +17,12 @@ import {
   GAME_STATUS_LABELS,
   HK_DISTRICT_LABELS,
   type Application,
+  type AttendanceStatus,
   type Game,
   type GameStatus,
   type HkDistrict,
   type Profile,
+  type Review,
   type Sport,
 } from "@/types/database";
 
@@ -24,7 +30,13 @@ export const dynamic = "force-dynamic";
 
 type GameDetail = Game & {
   sports: Pick<Sport, "name_zh" | "name_en"> | null;
-  profiles: Pick<Profile, "nickname" | "id"> | null;
+  profiles: Pick<Profile, "nickname" | "id" | "rating" | "rating_count" | "attendance_rate"> | null;
+};
+
+type ParticipantRow = {
+  user_id: string;
+  attendance_status: AttendanceStatus;
+  profiles: Pick<Profile, "nickname" | "rating" | "rating_count" | "attendance_rate"> | null;
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -45,7 +57,9 @@ export default async function GameDetailPage({
 
   const { data: gameData } = await supabase
     .from("games")
-    .select("*, sports(name_zh, name_en), profiles!host_id(id, nickname)")
+    .select(
+      "*, sports(name_zh, name_en), profiles!host_id(id, nickname, rating, rating_count, attendance_rate)",
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -61,6 +75,30 @@ export default async function GameDetailPage({
   let nickname: string | null = null;
   let myApplication: Application | null = null;
   let isParticipant = false;
+  let participants: ParticipantRow[] = [];
+  let reviews: (Review & {
+    reviewer: Pick<Profile, "nickname"> | null;
+    reviewee: Pick<Profile, "nickname"> | null;
+  })[] = [];
+
+  const [{ data: participantRows }, { data: reviewRows }] = await Promise.all([
+    supabase
+      .from("game_participants")
+      .select(
+        "user_id, attendance_status, profiles(nickname, rating, rating_count, attendance_rate)",
+      )
+      .eq("game_id", id),
+    supabase
+      .from("reviews")
+      .select(
+        "*, reviewer:profiles!reviewer_id(nickname), reviewee:profiles!reviewee_id(nickname)",
+      )
+      .eq("game_id", id)
+      .order("created_at", { ascending: false }),
+  ]);
+
+  participants = (participantRows ?? []) as unknown as ParticipantRow[];
+  reviews = (reviewRows ?? []) as unknown as typeof reviews;
 
   if (user) {
     const [{ data: profile }, { data: application }, { data: participant }] =
@@ -86,26 +124,59 @@ export default async function GameDetailPage({
 
   const isHost = user?.id === game.host_id;
   let disabledReason: string | null = null;
+  const pendingApplication = myApplication?.status === "pending";
+  const waitlistedApplication = myApplication?.status === "waitlisted";
+  const editableApplication = pendingApplication || waitlistedApplication;
+  const canWithdraw =
+    myApplication?.status === "pending" ||
+    myApplication?.status === "waitlisted" ||
+    myApplication?.status === "accepted";
+  const gameIsFull = status === "full" || game.spots_needed <= 0;
+  const waitlistMode =
+    gameIsFull &&
+    !isHost &&
+    !isParticipant &&
+    !myApplication &&
+    status !== "cancelled" &&
+    status !== "completed" &&
+    new Date(game.starts_at) >= new Date();
 
   if (isHost) {
     disabledReason = "這是你發佈的場次。";
-  } else if (isParticipant) {
+  } else if (isParticipant || myApplication?.status === "accepted") {
     disabledReason = "你已在名單中。";
-  } else if (myApplication?.status === "pending") {
+  } else if (pendingApplication) {
     disabledReason = "申請審批中，請等待房主回覆。";
-  } else if (myApplication?.status === "accepted") {
-    disabledReason = "你的申請已獲接受。";
+  } else if (waitlistedApplication) {
+    disabledReason = "你已在候補名單，有空缺時會自動轉為待審批。";
   } else if (myApplication?.status === "rejected") {
     disabledReason = "房主已拒絕此申請。";
-  } else if (status === "full") {
-    disabledReason = "此場次已滿。";
+  } else if (myApplication?.status === "withdrawn") {
+    disabledReason = "你已取消此申請。";
   } else if (status === "cancelled") {
     disabledReason = "此場次已取消。";
   } else if (status === "completed") {
     disabledReason = "此場次已完成。";
   } else if (new Date(game.starts_at) < new Date()) {
     disabledReason = "此場次已開始或已過期。";
+  } else if (waitlistMode) {
+    disabledReason = null;
+  } else if (gameIsFull) {
+    disabledReason = "此場次已滿。";
   }
+
+  const nonHostParticipants = participants.filter((row) => row.user_id !== game.host_id);
+  const canReview =
+    status === "completed" &&
+    Boolean(user) &&
+    (isHost || isParticipant);
+  const reviewTargets = nonHostParticipants
+    .filter((row) => row.user_id !== user?.id)
+    .map((row) => ({
+      user_id: row.user_id,
+      nickname: row.profiles?.nickname ?? "會員",
+    }));
+  const myReviews = reviews.filter((item) => item.reviewer_id === user?.id);
 
   return (
     <main className="min-h-dvh bg-paper text-ink">
@@ -165,6 +236,16 @@ export default async function GameDetailPage({
           <div>
             <dt className="text-sm text-ink/55">房主</dt>
             <dd className="mt-1 text-lg font-bold">{game.profiles?.nickname ?? "—"}</dd>
+            {game.profiles ? (
+              <div className="mt-1">
+                <ReputationBadge
+                  size="sm"
+                  rating={game.profiles.rating}
+                  ratingCount={game.profiles.rating_count}
+                  attendanceRate={game.profiles.attendance_rate}
+                />
+              </div>
+            ) : null}
           </div>
         </dl>
 
@@ -196,6 +277,9 @@ export default async function GameDetailPage({
                     場次群組聊天
                   </Link>
                 ) : null}
+                {status !== "completed" && status !== "cancelled" ? (
+                  <CompleteGameButton gameId={game.id} />
+                ) : null}
               </div>
             ) : (
               <>
@@ -203,6 +287,13 @@ export default async function GameDetailPage({
                   gameId={game.id}
                   userId={user?.id ?? null}
                   disabledReason={disabledReason}
+                  mode={waitlistMode ? "waitlist" : "apply"}
+                  onWithdraw={canWithdraw}
+                  allowProofUpdate={editableApplication}
+                  existingApplicationId={myApplication?.id ?? null}
+                  existingProofUrl={
+                    editableApplication ? myApplication?.payment_proof_url ?? null : null
+                  }
                 />
                 {isParticipant && game.chat_room_id ? (
                   <Link
@@ -216,6 +307,39 @@ export default async function GameDetailPage({
             )}
           </div>
         </section>
+
+        {isHost && status === "completed" ? (
+          <AttendancePanel gameId={game.id} participants={nonHostParticipants} />
+        ) : null}
+
+        {canReview && user ? (
+          <ReviewPanel
+            gameId={game.id}
+            reviewerId={user.id}
+            targets={reviewTargets}
+            existingReviews={myReviews}
+          />
+        ) : null}
+
+        {status === "completed" && reviews.length > 0 ? (
+          <section className="mt-10">
+            <h2 className="text-xl font-black">公開評論</h2>
+            <ul className="mt-5 divide-y divide-ink/10 border-y border-ink/10">
+              {reviews.map((review) => (
+                <li key={review.id} className="py-4">
+                  <p className="text-sm font-bold">
+                    {review.reviewer?.nickname ?? "會員"} →{" "}
+                    {review.reviewee?.nickname ?? "會員"}
+                    <span className="ml-2 text-court">★ {review.rating}</span>
+                  </p>
+                  {review.comment ? (
+                    <p className="mt-2 text-sm text-ink/70">「{review.comment}」</p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
       </div>
     </main>
   );

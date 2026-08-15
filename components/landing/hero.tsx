@@ -14,32 +14,30 @@ export async function Hero({
   const tNav = await getTranslations("nav");
 
   return (
-    <section className="relative min-h-dvh overflow-hidden bg-ink">
+    <section className="relative min-h-[100dvh] overflow-hidden bg-ink md:min-h-[calc(100dvh-3rem)]">
       <Image
         src="/images/hero.jpg"
         alt="香港戶外籃球場"
         fill
         priority
-        sizes="100vw"
+        sizes="(min-width: 768px) 90vw, 100vw"
         className="animate-kenburns object-cover object-[center_40%]"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/55 to-ink/20" />
       <div className="absolute inset-0 bg-gradient-to-r from-ink/70 to-transparent" />
 
-      <div className="absolute top-6 right-5 z-10 flex items-center gap-4 md:top-8 md:right-10">
-        <div className="[&_select]:border-paper/30 [&_select]:text-paper/90 [&_select]:focus:border-line">
-          <LanguageSwitcher />
-        </div>
+      <div className="absolute top-6 right-5 z-50 flex items-center gap-4 md:top-8 md:right-10">
+        <LanguageSwitcher variant="dark" />
         <Link
           href={isAuthed ? "/profile" : "/login"}
-          className="max-w-[36vw] truncate text-sm font-medium tracking-wide text-paper/90 transition-colors hover:text-line"
+          className="max-w-[46vw] truncate text-sm font-medium tracking-wide text-paper/90 transition-colors hover:text-line md:max-w-none"
         >
           {isAuthed ? (nickname ?? tNav("profile")) : tNav("login")}
         </Link>
       </div>
 
-      <div className="relative z-10 flex min-h-dvh flex-col justify-end px-5 pb-10 md:px-12 md:pb-16">
-        <p className="animate-rise font-display text-[clamp(4.2rem,16vw,10rem)] leading-[0.8] text-paper">
+      <div className="relative z-10 flex min-h-[100dvh] flex-col justify-end px-5 pb-10 md:min-h-[calc(100dvh-3rem)] md:px-12 md:pb-16">
+        <p className="animate-rise font-display text-[clamp(3.5rem,12vw,7rem)] leading-[0.85] text-paper md:text-[clamp(4rem,8vw,7.5rem)]">
           SPORTS
           <br />
           MAP & MATCH

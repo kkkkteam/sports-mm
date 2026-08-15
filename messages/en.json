@@ -1,6 +1,10 @@
 {
   "brand": "Sports Map & Match",
   "nav": {
+    "home": "Home",
+    "map": "Map",
+    "hostTab": "Host",
+    "chats": "Chats",
     "findGames": "Find Games",
     "hostGame": "Host",
     "approvals": "Approvals",
@@ -39,7 +43,13 @@
     "join": "Join",
     "viewDetails": "View details",
     "venue": "Venue",
-    "time": "Time"
+    "time": "Time",
+    "distanceAway": "{km} km away",
+    "distanceLocating": "Getting your location…",
+    "distanceNeedPermission": "Enable location to see distance",
+    "distanceUnknown": "Distance unknown",
+    "distancePermissionHint": "Allow location access to see distance on each card.",
+    "distanceEnable": "Enable location"
   },
   "auth": {
     "loginTitle": "Enter",
