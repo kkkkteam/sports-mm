@@ -71,5 +71,11 @@
     "loading": "載入中…",
     "save": "儲存",
     "cancel": "取消"
+  },
+  "theme": {
+    "label": "主題",
+    "light": "預設（淺色）",
+    "dark": "暗色",
+    "high-contrast": "高對比"
   }
 }

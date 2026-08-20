@@ -24,7 +24,7 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <div lang={locale} className="min-h-full">
+      <div lang={locale} className="h-full">
         <AppShell>{children}</AppShell>
       </div>
     </NextIntlClientProvider>

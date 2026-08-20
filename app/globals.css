@@ -1,7 +1,11 @@
 @import "tailwindcss";
 
-:root {
-  /* Minimalist bright palette */
+/* Tailwind v4: dark: utilities follow data-theme="dark" */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root,
+[data-theme="light"] {
+  --shell-bg: #e2e8f0;
   --canvas: #f8fafc;
   --surface: #ffffff;
   --ink: #0f172a;
@@ -10,14 +14,49 @@
   --accent: #2563eb;
   --accent-soft: #dbeafe;
 
-  /* Legacy aliases → new system (gradual migration) */
   --paper: var(--canvas);
   --court: var(--accent);
   --line: var(--accent-soft);
   --mist: #e2e8f0;
 }
 
+[data-theme="dark"] {
+  --shell-bg: #020617;
+  --canvas: #0f172a;
+  --surface: #1e293b;
+  --ink: #f8fafc;
+  --muted: #94a3b8;
+  --line-subtle: #334155;
+  --accent: #3b82f6;
+  --accent-soft: #1e3a8a;
+
+  --paper: var(--canvas);
+  --court: var(--accent);
+  --line: var(--accent-soft);
+  --mist: #334155;
+  color-scheme: dark;
+}
+
+/* High contrast: pure black / white + fluorescent accent */
+[data-theme="high-contrast"] {
+  --shell-bg: #000000;
+  --canvas: #000000;
+  --surface: #000000;
+  --ink: #ffffff;
+  --muted: #ffff66;
+  --line-subtle: #ffffff;
+  --accent: #ccff00;
+  --accent-soft: #ffff00;
+
+  --paper: var(--canvas);
+  --court: var(--accent);
+  --line: var(--accent-soft);
+  --mist: #222222;
+  color-scheme: dark;
+}
+
 @theme inline {
+  --color-shell: var(--shell-bg);
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
   --color-ink: var(--ink);
@@ -34,21 +73,27 @@
 }
 
 html {
-  background: #e2e8f0;
+  background: var(--shell-bg);
   height: 100%;
+  overflow: hidden;
 }
 
 body {
-  background: #e2e8f0;
+  background: var(--shell-bg);
   color: var(--ink);
   font-family: var(--font-noto), "Noto Sans TC", system-ui, sans-serif;
-  min-height: 100%;
-  min-height: 100dvh;
+  height: 100%;
+  overflow: hidden;
 }
 
 ::selection {
   background: var(--accent-soft);
   color: var(--ink);
+}
+
+[data-theme="high-contrast"] ::selection {
+  background: var(--accent);
+  color: #000000;
 }
 
 /* Hide native scrollbars (keep scroll) */

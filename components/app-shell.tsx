@@ -23,21 +23,24 @@ export function AppShell({ children }: { children: ReactNode }) {
   const hideTabBar = shouldHideTabBar(pathname);
 
   return (
-    <div className="min-h-dvh bg-slate-100 md:px-4 md:py-6">
+    <div className="h-[100dvh] overflow-hidden bg-shell md:px-4 md:py-6">
       <div
         className={[
-          "relative mx-auto flex min-h-dvh w-full flex-col overflow-hidden bg-canvas text-ink",
-          "md:min-h-[calc(100dvh-3rem)] md:w-[90%] md:max-w-7xl md:rounded-2xl md:shadow-xl",
+          "relative mx-auto flex h-full w-full flex-col overflow-hidden bg-canvas text-ink",
+          "md:h-[calc(100dvh-3rem)] md:w-[90%] md:max-w-7xl md:rounded-2xl md:shadow-xl",
+          "md:ring-1 md:ring-line-subtle",
         ].join(" ")}
       >
-        <div
+        {/* min-h-0 is required so flex-1 can shrink and enable overflow scroll */}
+        <main
           className={[
-            "no-scrollbar flex-1 overflow-y-auto overscroll-y-contain pt-safe",
-            hideTabBar ? "pb-safe" : "pb-tabbar",
+            "no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-y-contain pt-safe",
+            "[-webkit-overflow-scrolling:touch]",
+            hideTabBar ? "pb-safe" : "pb-6",
           ].join(" ")}
         >
           {children}
-        </div>
+        </main>
         {hideTabBar ? null : <BottomNav />}
       </div>
     </div>

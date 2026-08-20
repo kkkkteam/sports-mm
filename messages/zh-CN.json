@@ -71,5 +71,11 @@
     "loading": "加载中…",
     "save": "保存",
     "cancel": "取消"
+  },
+  "theme": {
+    "label": "主题",
+    "light": "默认（浅色）",
+    "dark": "暗色",
+    "high-contrast": "高对比"
   }
 }

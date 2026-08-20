@@ -14,7 +14,7 @@ export async function Hero({
   const tNav = await getTranslations("nav");
 
   return (
-    <section className="relative min-h-[100dvh] overflow-hidden bg-ink md:min-h-[calc(100dvh-3rem)]">
+    <section className="relative min-h-[min(100%,100dvh)] overflow-hidden bg-ink md:min-h-full">
       <Image
         src="/images/hero.jpg"
         alt="香港戶外籃球場"
@@ -36,7 +36,7 @@ export async function Hero({
         </Link>
       </div>
 
-      <div className="relative z-10 flex min-h-[100dvh] flex-col justify-end px-5 pb-10 md:min-h-[calc(100dvh-3rem)] md:px-12 md:pb-16">
+      <div className="relative z-10 flex min-h-[70dvh] flex-col justify-end px-5 pb-10 md:min-h-[calc(100dvh-8rem)] md:px-12 md:pb-16">
         <p className="animate-rise font-display text-[clamp(3.5rem,12vw,7rem)] leading-[0.85] text-paper md:text-[clamp(4rem,8vw,7.5rem)]">
           SPORTS
           <br />

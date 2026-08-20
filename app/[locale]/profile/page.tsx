@@ -4,6 +4,7 @@ import { redirect } from "@/lib/redirect";
 import { AppNav } from "@/components/app-nav";
 import { ProfileEditor } from "@/components/profile/profile-editor";
 import { ReputationBadge } from "@/components/reputation/reputation-badge";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { getOrCreateProfile, getSessionUser } from "@/lib/profile";
 import type { SkillLevel, Sport, UserSportSkill } from "@/types/database";
 
@@ -91,6 +92,14 @@ export default async function ProfilePage() {
             </div>
           </dl>
         </section>
+
+        <div className="mt-10 rounded-2xl border border-line-subtle bg-surface p-5 shadow-sm">
+          <h2 className="text-lg font-bold text-ink">外觀設定</h2>
+          <p className="mt-1 text-sm text-muted">切換淺色、暗色或高對比模式。</p>
+          <div className="mt-4">
+            <ThemeSwitcher />
+          </div>
+        </div>
 
         <div className="mt-14 md:mt-20">
           <ProfileEditor profile={profile} sports={sports} skills={skills} />

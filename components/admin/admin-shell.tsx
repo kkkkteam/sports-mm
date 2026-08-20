@@ -77,13 +77,13 @@ export function AdminShell({
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-h-dvh bg-slate-100 text-slate-900">
+    <div className="flex h-[100dvh] overflow-hidden bg-slate-100 text-slate-900">
       <AdminSidebar nickname={nickname} />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center border-b border-slate-200 bg-white px-8">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <header className="flex h-14 shrink-0 items-center border-b border-slate-200 bg-white px-8">
           <p className="text-sm font-medium text-slate-500">管理後台 · Desktop</p>
         </header>
-        <main className="flex-1 overflow-y-auto px-8 py-8">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto px-8 py-8">{children}</main>
       </div>
     </div>
   );

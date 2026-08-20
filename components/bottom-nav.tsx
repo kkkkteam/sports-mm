@@ -129,34 +129,32 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="pointer-events-none absolute inset-x-0 bottom-0 z-40"
+      className="z-40 w-full shrink-0 border-t border-line-subtle bg-surface/80 pb-safe backdrop-blur-md"
     >
-      <div className="pointer-events-auto border-t border-gray-100 bg-white/80 pb-safe backdrop-blur-md">
-        <ul className="grid h-[4.25rem] grid-cols-5 items-end px-1">
-          {tabs.map((tab) => {
-            const active = tab.match(pathname);
-            const isHost = tab.key === "host";
-            return (
-              <li key={tab.key} className="flex justify-center">
-                <Link
-                  href={tab.href}
-                  aria-current={active ? "page" : undefined}
-                  className={`flex min-w-[3.5rem] flex-col items-center gap-0.5 px-1 pb-2 pt-1 text-[10px] font-semibold tracking-wide transition-colors ${
-                    isHost
+      <ul className="grid h-[4.25rem] grid-cols-5 items-end px-1">
+        {tabs.map((tab) => {
+          const active = tab.match(pathname);
+          const isHost = tab.key === "host";
+          return (
+            <li key={tab.key} className="flex justify-center">
+              <Link
+                href={tab.href}
+                aria-current={active ? "page" : undefined}
+                className={`flex min-w-[3.5rem] flex-col items-center gap-0.5 px-1 pb-2 pt-1 text-[10px] font-semibold tracking-wide transition-colors ${
+                  isHost
+                    ? "text-accent"
+                    : active
                       ? "text-accent"
-                      : active
-                        ? "text-accent"
-                        : "text-slate-400 hover:text-slate-600"
-                  }`}
-                >
-                  {tab.icon(active)}
-                  <span className={isHost ? "mt-0.5" : ""}>{t(tab.labelKey)}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+                      : "text-slate-400 hover:text-slate-600"
+                }`}
+              >
+                {tab.icon(active)}
+                <span className={isHost ? "mt-0.5" : ""}>{t(tab.labelKey)}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </nav>
   );
 }
