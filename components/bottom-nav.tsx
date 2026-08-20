@@ -61,7 +61,7 @@ const tabs: {
     labelKey: "hostTab",
     match: (pathname) => pathname === "/games/new" || pathname.startsWith("/host"),
     icon: () => (
-      <span className="flex h-11 w-11 -mt-3 items-center justify-center rounded-full bg-accent text-white shadow-[0_4px_14px_rgba(37,99,235,0.35)]">
+      <span className="flex h-11 w-11 -mt-3 items-center justify-center rounded-full bg-accent text-on-accent shadow-[0_4px_14px_rgba(0,0,0,0.12)]">
         <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>
           <path
             d="M12 6v12M6 12h12"

@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
-
-const THEMES = ["light", "dark", "high-contrast"] as const;
+import { APP_THEMES } from "@/app/providers";
 
 export function ThemeSwitcher({
   compact = false,
@@ -24,7 +23,7 @@ export function ThemeSwitcher({
       <div
         className={
           compact
-            ? "h-9 w-[7.5rem] rounded-lg border border-line-subtle bg-surface"
+            ? "h-9 w-[8.5rem] rounded-lg border border-line-subtle bg-surface"
             : "h-11 w-full max-w-xs rounded-xl border border-line-subtle bg-surface"
         }
         aria-hidden
@@ -47,11 +46,11 @@ export function ThemeSwitcher({
         onChange={(event) => setTheme(event.target.value)}
         className={
           compact
-            ? "min-h-9 rounded-lg border border-line-subtle bg-surface px-2 text-xs font-semibold text-ink outline-none focus:border-accent"
+            ? "min-h-9 max-w-[9.5rem] rounded-lg border border-line-subtle bg-surface px-2.5 text-xs font-semibold text-ink outline-none focus:border-accent"
             : "min-h-11 rounded-xl border border-line-subtle bg-surface px-3 text-sm font-semibold text-ink outline-none focus:border-accent"
         }
       >
-        {THEMES.map((value) => (
+        {APP_THEMES.map((value) => (
           <option key={value} value={value}>
             {t(value)}
           </option>

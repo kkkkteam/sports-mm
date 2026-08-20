@@ -28,7 +28,7 @@ export default async function MapPage({
       </p>
       <Link
         href="/games"
-        className="mt-8 inline-flex min-h-12 items-center justify-center rounded-full bg-accent px-6 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+        className="mt-8 inline-flex min-h-12 items-center justify-center rounded-full bg-accent px-6 text-sm font-semibold text-on-accent shadow-sm transition-opacity hover:opacity-90"
       >
         返回場次列表
       </Link>

@@ -76,6 +76,8 @@
     "label": "主题",
     "light": "默认（浅色）",
     "dark": "暗色",
-    "high-contrast": "高对比"
+    "high-contrast": "高对比",
+    "morandi": "莫兰迪",
+    "earthy": "大地色"
   }
 }

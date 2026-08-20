@@ -76,6 +76,8 @@
     "label": "Theme",
     "light": "Light",
     "dark": "Dark",
-    "high-contrast": "High contrast"
+    "high-contrast": "High contrast",
+    "morandi": "Morandi",
+    "earthy": "Earthy"
   }
 }

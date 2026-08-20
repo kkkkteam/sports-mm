@@ -10,9 +10,10 @@
   --surface: #ffffff;
   --ink: #0f172a;
   --muted: #64748b;
-  --line-subtle: #f1f5f9;
+  --line-subtle: #e2e8f0;
   --accent: #2563eb;
   --accent-soft: #dbeafe;
+  --on-accent: #ffffff;
 
   --paper: var(--canvas);
   --court: var(--accent);
@@ -29,6 +30,7 @@
   --line-subtle: #334155;
   --accent: #3b82f6;
   --accent-soft: #1e3a8a;
+  --on-accent: #ffffff;
 
   --paper: var(--canvas);
   --court: var(--accent);
@@ -37,22 +39,61 @@
   color-scheme: dark;
 }
 
-/* High contrast: pure black / white + fluorescent accent */
+/* High contrast: black canvas, white text; yellow accent uses BLACK text on buttons */
 [data-theme="high-contrast"] {
   --shell-bg: #000000;
   --canvas: #000000;
-  --surface: #000000;
+  --surface: #0a0a0a;
   --ink: #ffffff;
-  --muted: #ffff66;
+  --muted: #d4d4d4;
   --line-subtle: #ffffff;
-  --accent: #ccff00;
-  --accent-soft: #ffff00;
+  --accent: #ffe600;
+  --accent-soft: #1a1a1a;
+  --on-accent: #000000;
 
   --paper: var(--canvas);
   --court: var(--accent);
   --line: var(--accent-soft);
-  --mist: #222222;
+  --mist: #1a1a1a;
   color-scheme: dark;
+}
+
+/* Morandi — soft dusty rose / sage (female-friendly) */
+[data-theme="morandi"] {
+  --shell-bg: #e5e0dc;
+  --canvas: #f4f0ec;
+  --surface: #fffcfa;
+  --ink: #4a4340;
+  --muted: #8f857e;
+  --line-subtle: #ddd5cf;
+  --accent: #a8898a;
+  --accent-soft: #eadfdf;
+  --on-accent: #ffffff;
+
+  --paper: var(--canvas);
+  --court: var(--accent);
+  --line: var(--accent-soft);
+  --mist: #e2d9d4;
+  color-scheme: light;
+}
+
+/* Earthy — sand / terracotta */
+[data-theme="earthy"] {
+  --shell-bg: #e8dfd2;
+  --canvas: #f6f0e6;
+  --surface: #fffaf3;
+  --ink: #3b2a1c;
+  --muted: #8a735a;
+  --line-subtle: #e0d3c2;
+  --accent: #c4784a;
+  --accent-soft: #f0dccb;
+  --on-accent: #ffffff;
+
+  --paper: var(--canvas);
+  --court: var(--accent);
+  --line: var(--accent-soft);
+  --mist: #eadfce;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -64,6 +105,7 @@
   --color-line-subtle: var(--line-subtle);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
   --color-paper: var(--paper);
   --color-court: var(--court);
   --color-line: var(--line);
@@ -94,6 +136,11 @@ body {
 [data-theme="high-contrast"] ::selection {
   background: var(--accent);
   color: #000000;
+}
+
+/* Ensure accent buttons stay readable in high-contrast (yellow bg → black text) */
+[data-theme="high-contrast"] .bg-accent {
+  color: var(--on-accent) !important;
 }
 
 /* Hide native scrollbars (keep scroll) */
