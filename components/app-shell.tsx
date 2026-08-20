@@ -14,6 +14,12 @@ function shouldHideTabBar(pathname: string) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+
+  // Admin panel uses its own desktop layout — skip consumer App Shell.
+  if (pathname === "/admin-manage" || pathname.startsWith("/admin-manage/")) {
+    return <>{children}</>;
+  }
+
   const hideTabBar = shouldHideTabBar(pathname);
 
   return (

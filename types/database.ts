@@ -128,6 +128,7 @@ export interface Profile {
   attendance_marked_count: number;
   attendance_present_count: number;
   attendance_rate: number | null;
+  is_admin: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -62,7 +62,9 @@ export async function updateSession(
     path === "/friends" ||
     path.startsWith("/friends/") ||
     path === "/chat" ||
-    path.startsWith("/chat/");
+    path.startsWith("/chat/") ||
+    path === "/admin-manage" ||
+    path.startsWith("/admin-manage/");
 
   if (!user && isProtected) {
     const redirectUrl = request.nextUrl.clone();
