@@ -61,7 +61,7 @@ const tabs: {
     labelKey: "hostTab",
     match: (pathname) => pathname === "/games/new" || pathname.startsWith("/host"),
     icon: () => (
-      <span className="flex h-11 w-11 -mt-3 items-center justify-center rounded-full bg-accent text-on-accent shadow-[0_4px_14px_rgba(0,0,0,0.12)]">
+      <span className="flex h-11 w-11 -mt-3 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_4px_14px_rgba(0,0,0,0.12)]">
         <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>
           <path
             d="M12 6v12M6 12h12"
@@ -129,7 +129,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="z-40 w-full shrink-0 border-t border-line-subtle bg-surface/80 pb-safe backdrop-blur-md"
+      className="z-40 w-full shrink-0 border-t border-border bg-card/80 pb-safe backdrop-blur-md"
     >
       <ul className="grid h-[4.25rem] grid-cols-5 items-end px-1">
         {tabs.map((tab) => {
@@ -142,10 +142,10 @@ export function BottomNav() {
                 aria-current={active ? "page" : undefined}
                 className={`flex min-w-[3.5rem] flex-col items-center gap-0.5 px-1 pb-2 pt-1 text-[10px] font-semibold tracking-wide transition-colors ${
                   isHost
-                    ? "text-accent"
+                    ? "text-primary"
                     : active
-                      ? "text-accent"
-                      : "text-slate-400 hover:text-slate-600"
+                      ? "text-primary"
+                      : "text-muted hover:text-foreground"
                 }`}
               >
                 {tab.icon(active)}

@@ -43,7 +43,6 @@ create table public.sports (
 
 insert into public.sports (slug, name_en, name_zh, min_players) values
   ('basketball', 'Basketball', '籃球', 4),
-  ('dodgebee', 'Dodgebee', '健球', 6),
   ('pickleball', 'Pickleball', '匹克球', 2),
   ('football', 'Football', '足球', 8),
   ('badminton', 'Badminton', '羽毛球', 2),

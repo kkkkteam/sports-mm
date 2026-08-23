@@ -3,100 +3,153 @@
 /* Tailwind v4: dark: utilities follow data-theme="dark" */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+/* ─── Canonical theme tokens (background / primary / …) ─── */
+
+/* Default light — clean, bright, neutral */
 :root,
 [data-theme="light"] {
-  --shell-bg: #e2e8f0;
-  --canvas: #f8fafc;
-  --surface: #ffffff;
-  --ink: #0f172a;
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card: #f8fafc;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --border: #e2e8f0;
+
+  /* Legacy semantic aliases (derived from canonical tokens) */
+  --shell-bg: #f1f5f9;
+  --canvas: var(--background);
+  --surface: var(--card);
+  --ink: var(--foreground);
   --muted: #64748b;
-  --line-subtle: #e2e8f0;
-  --accent: #2563eb;
+  --line-subtle: var(--border);
+  --accent: var(--primary);
   --accent-soft: #dbeafe;
-  --on-accent: #ffffff;
-
+  --on-accent: var(--primary-foreground);
   --paper: var(--canvas);
-  --court: var(--accent);
+  --court: var(--primary);
   --line: var(--accent-soft);
-  --mist: #e2e8f0;
+  --mist: #f1f5f9;
+
+  color-scheme: light;
 }
 
+/* Morandi green — soft, outdoor, gray-green tint */
+[data-theme="morandi"] {
+  --background: #f0f4f1;
+  --foreground: #2c3531;
+  --card: #ffffff;
+  --primary: #7c9082;
+  --primary-foreground: #ffffff;
+  --border: #d1d9d3;
+
+  --shell-bg: #e8ede9;
+  --canvas: var(--background);
+  --surface: var(--card);
+  --ink: var(--foreground);
+  --muted: #6b7b72;
+  --line-subtle: var(--border);
+  --accent: var(--primary);
+  --accent-soft: #dde5df;
+  --on-accent: var(--primary-foreground);
+  --paper: var(--canvas);
+  --court: var(--primary);
+  --line: var(--accent-soft);
+  --mist: #e8efea;
+
+  color-scheme: light;
+}
+
+/* Dark — deep sport aesthetic */
 [data-theme="dark"] {
-  --shell-bg: #020617;
-  --canvas: #0f172a;
-  --surface: #1e293b;
-  --ink: #f8fafc;
+  --background: #121212;
+  --foreground: #f1f5f9;
+  --card: #1e1e1e;
+  --primary: #10b981;
+  --primary-foreground: #ffffff;
+  --border: #333333;
+
+  --shell-bg: #0a0a0a;
+  --canvas: var(--background);
+  --surface: var(--card);
+  --ink: var(--foreground);
   --muted: #94a3b8;
-  --line-subtle: #334155;
-  --accent: #3b82f6;
-  --accent-soft: #1e3a8a;
-  --on-accent: #ffffff;
-
+  --line-subtle: var(--border);
+  --accent: var(--primary);
+  --accent-soft: #064e3b;
+  --on-accent: var(--primary-foreground);
   --paper: var(--canvas);
-  --court: var(--accent);
-  --line: var(--accent-soft);
-  --mist: #334155;
-  color-scheme: dark;
-}
-
-/* High contrast: black canvas, white text; yellow accent uses BLACK text on buttons */
-[data-theme="high-contrast"] {
-  --shell-bg: #000000;
-  --canvas: #000000;
-  --surface: #0a0a0a;
-  --ink: #ffffff;
-  --muted: #d4d4d4;
-  --line-subtle: #ffffff;
-  --accent: #ffe600;
-  --accent-soft: #1a1a1a;
-  --on-accent: #000000;
-
-  --paper: var(--canvas);
-  --court: var(--accent);
+  --court: var(--primary);
   --line: var(--accent-soft);
   --mist: #1a1a1a;
+
   color-scheme: dark;
 }
 
-/* Morandi — soft dusty rose / sage (female-friendly) */
-[data-theme="morandi"] {
-  --shell-bg: #e5e0dc;
-  --canvas: #f4f0ec;
-  --surface: #fffcfa;
-  --ink: #4a4340;
-  --muted: #8f857e;
-  --line-subtle: #ddd5cf;
-  --accent: #a8898a;
-  --accent-soft: #eadfdf;
-  --on-accent: #ffffff;
+/* High contrast — black canvas, white text; yellow accent → black button text */
+[data-theme="high-contrast"] {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #0a0a0a;
+  --primary: #ffe600;
+  --primary-foreground: #000000;
+  --border: #ffffff;
 
+  --shell-bg: #000000;
+  --canvas: var(--background);
+  --surface: var(--card);
+  --ink: var(--foreground);
+  --muted: #d4d4d4;
+  --line-subtle: var(--border);
+  --accent: var(--primary);
+  --accent-soft: #1a1a1a;
+  --on-accent: var(--primary-foreground);
   --paper: var(--canvas);
-  --court: var(--accent);
+  --court: var(--primary);
   --line: var(--accent-soft);
-  --mist: #e2d9d4;
-  color-scheme: light;
+  --mist: #1a1a1a;
+
+  color-scheme: dark;
 }
 
 /* Earthy — sand / terracotta */
 [data-theme="earthy"] {
-  --shell-bg: #e8dfd2;
-  --canvas: #f6f0e6;
-  --surface: #fffaf3;
-  --ink: #3b2a1c;
-  --muted: #8a735a;
-  --line-subtle: #e0d3c2;
-  --accent: #c4784a;
-  --accent-soft: #f0dccb;
-  --on-accent: #ffffff;
+  --background: #f6f0e6;
+  --foreground: #3b2a1c;
+  --card: #fffaf3;
+  --primary: #c4784a;
+  --primary-foreground: #ffffff;
+  --border: #e0d3c2;
 
+  --shell-bg: #e8dfd2;
+  --canvas: var(--background);
+  --surface: var(--card);
+  --ink: var(--foreground);
+  --muted: #8a735a;
+  --line-subtle: var(--border);
+  --accent: var(--primary);
+  --accent-soft: #f0dccb;
+  --on-accent: var(--primary-foreground);
   --paper: var(--canvas);
-  --court: var(--accent);
+  --court: var(--primary);
   --line: var(--accent-soft);
   --mist: #eadfce;
+
   color-scheme: light;
 }
 
+/*
+ * Tailwind v4 theme bridge (replaces tailwind.config.ts color extensions).
+ * Utilities: bg-background, text-foreground, bg-primary, bg-card, border-border, …
+ * Legacy aliases (accent, canvas, ink, …) remain for existing components.
+ */
 @theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-border: var(--border);
+
   --color-shell: var(--shell-bg);
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
@@ -122,7 +175,7 @@ html {
 
 body {
   background: var(--shell-bg);
-  color: var(--ink);
+  color: var(--foreground);
   font-family: var(--font-noto), "Noto Sans TC", system-ui, sans-serif;
   height: 100%;
   overflow: hidden;
@@ -130,17 +183,18 @@ body {
 
 ::selection {
   background: var(--accent-soft);
-  color: var(--ink);
+  color: var(--foreground);
 }
 
 [data-theme="high-contrast"] ::selection {
-  background: var(--accent);
+  background: var(--primary);
   color: #000000;
 }
 
-/* Ensure accent buttons stay readable in high-contrast (yellow bg → black text) */
-[data-theme="high-contrast"] .bg-accent {
-  color: var(--on-accent) !important;
+/* Ensure primary/accent buttons stay readable in high-contrast */
+[data-theme="high-contrast"] .bg-accent,
+[data-theme="high-contrast"] .bg-primary {
+  color: var(--primary-foreground) !important;
 }
 
 /* Hide native scrollbars (keep scroll) */

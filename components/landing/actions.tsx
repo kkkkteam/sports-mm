@@ -55,7 +55,7 @@ export function Actions({
             搵場
           </h2>
           <p className="mt-4 max-w-md text-base leading-relaxed text-paper/80">
-            按運動、地區與時間找局。房主接受後即可加入，費用一齊攤。
+            按運動、地區與時間找拼場。發起人接受後即可加入，費用一齊攤。
           </p>
           <Link
             href={joinHref}

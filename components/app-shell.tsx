@@ -21,6 +21,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   const hideTabBar = shouldHideTabBar(pathname);
+  const isMapPage = pathname === "/map" || pathname.startsWith("/map/");
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-shell md:px-4 md:py-6">
@@ -34,9 +35,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* min-h-0 is required so flex-1 can shrink and enable overflow scroll */}
         <main
           className={[
-            "no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-y-contain pt-safe",
-            "[-webkit-overflow-scrolling:touch]",
-            hideTabBar ? "pb-safe" : "pb-6",
+            "no-scrollbar min-h-0 flex-1 overscroll-y-contain",
+            isMapPage
+              ? "overflow-hidden p-0"
+              : "overflow-y-auto pt-safe pb-6 [-webkit-overflow-scrolling:touch]",
+            hideTabBar ? "pb-safe" : "",
           ].join(" ")}
         >
           {children}

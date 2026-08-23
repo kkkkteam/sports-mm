@@ -21,6 +21,45 @@ function detectLocale(pathname: string) {
   );
 }
 
+function supabaseAuthCookiePrefix(supabaseUrl: string) {
+  try {
+    const projectRef = new URL(supabaseUrl).hostname.split(".")[0];
+    return `sb-${projectRef}-auth-token`;
+  } catch {
+    return null;
+  }
+}
+
+function clearSupabaseAuthCookies(
+  request: NextRequest,
+  response: NextResponse,
+  supabaseUrl: string,
+) {
+  const prefix = supabaseAuthCookiePrefix(supabaseUrl);
+  if (!prefix) return;
+
+  for (const cookie of request.cookies.getAll()) {
+    if (cookie.name === prefix || cookie.name.startsWith(`${prefix}.`)) {
+      response.cookies.set(cookie.name, "", { maxAge: 0, path: "/" });
+    }
+  }
+}
+
+function shouldClearAuthSession(error: { code?: string; message?: string } | null) {
+  if (!error) return false;
+
+  const code = error.code ?? "";
+  const message = error.message ?? "";
+
+  return (
+    code === "refresh_token_not_found" ||
+    code === "session_not_found" ||
+    code === "invalid_refresh_token" ||
+    /refresh token/i.test(message) ||
+    /session.*expired/i.test(message)
+  );
+}
+
 export async function updateSession(
   request: NextRequest,
   response: NextResponse,
@@ -29,6 +68,8 @@ export async function updateSession(
   if (!url || !key) {
     return response;
   }
+
+  let supabaseResponse = response;
 
   const supabase = createServerClient(url, key, {
     cookies: {
@@ -40,15 +81,38 @@ export async function updateSession(
           request.cookies.set(name, value);
         });
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+          supabaseResponse.cookies.set(name, value, options);
         });
       },
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+
+  try {
+    const {
+      data: { user: authUser },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error) {
+      if (shouldClearAuthSession(error)) {
+        try {
+          await supabase.auth.signOut({ scope: "local" });
+        } catch {
+          clearSupabaseAuthCookies(request, supabaseResponse, url);
+        }
+      }
+    } else {
+      user = authUser;
+    }
+  } catch {
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch {
+      clearSupabaseAuthCookies(request, supabaseResponse, url);
+    }
+  }
 
   const path = stripLocale(request.nextUrl.pathname);
   const locale = detectLocale(request.nextUrl.pathname);
@@ -80,5 +144,5 @@ export async function updateSession(
     return NextResponse.redirect(redirectUrl);
   }
 
-  return response;
+  return supabaseResponse;
 }

@@ -15,6 +15,7 @@ export function ApplyButton({
   mode = "apply",
   allowProofUpdate = false,
   onWithdraw = false,
+  layout = "inline",
 }: {
   gameId: string;
   userId: string | null;
@@ -25,6 +26,7 @@ export function ApplyButton({
   allowProofUpdate?: boolean;
   /** Shown when user can cancel pending/waitlisted/accepted */
   onWithdraw?: boolean;
+  layout?: "inline" | "footer";
 }) {
   const router = useRouter();
   const titleId = useId();
@@ -50,28 +52,49 @@ export function ApplyButton({
   }, [open]);
 
   if (!userId) {
+    const loginClass =
+      layout === "footer"
+        ? "flex min-h-12 w-full items-center justify-center rounded-xl bg-accent text-base font-bold text-on-accent transition-opacity hover:opacity-90"
+        : "inline-flex min-h-12 items-center justify-center bg-ink px-8 text-base font-bold text-paper transition-colors hover:bg-court";
+
     return (
-      <Link
-        href={`/login?next=/games/${gameId}`}
-        className="inline-flex min-h-12 items-center justify-center bg-ink px-8 text-base font-bold text-paper transition-colors hover:bg-court"
-      >
-        登入後申請加入
+      <Link href={`/login?next=/games/${gameId}`} className={loginClass}>
+        {layout === "footer" ? "登入後立即申請加入" : "登入後申請加入"}
       </Link>
     );
   }
 
   if (disabledReason && !canUpdateProof && !onWithdraw) {
+    if (layout === "footer") {
+      return (
+        <button
+          type="button"
+          disabled
+          className="min-h-12 w-full rounded-xl bg-mist text-base font-bold text-muted"
+        >
+          {disabledReason}
+        </button>
+      );
+    }
     return <p className="text-base font-medium text-ink/60">{disabledReason}</p>;
   }
 
   if (done && !canUpdateProof) {
-    return (
-      <p className="text-base font-bold text-court">
-        {doneWaitlist
-          ? "已加入候補名單，有空缺時會通知你並轉為待審批。"
-          : "已送出申請，等待房主審批。"}
-      </p>
-    );
+    const doneText = doneWaitlist
+      ? "已加入候補名單，有空缺時會通知你並轉為待審批。"
+      : "已送出申請，等待發起人審批。";
+    if (layout === "footer") {
+      return (
+        <button
+          type="button"
+          disabled
+          className="min-h-12 w-full rounded-xl bg-accent/20 text-base font-bold text-accent"
+        >
+          {doneText}
+        </button>
+      );
+    }
+    return <p className="text-base font-bold text-court">{doneText}</p>;
   }
 
   async function withdraw() {
@@ -189,11 +212,18 @@ export function ApplyButton({
     ? "補傳／更換付款截圖"
     : isWaitlist
       ? "排隊候補"
-      : "申請加入";
+      : layout === "footer"
+        ? "立即申請加入"
+        : "申請加入";
+
+  const primaryButtonClass =
+    layout === "footer"
+      ? "min-h-12 w-full rounded-xl bg-accent text-base font-bold text-on-accent transition-opacity hover:opacity-90 disabled:opacity-55"
+      : "inline-flex min-h-12 w-fit items-center justify-center bg-line px-8 text-base font-bold text-ink transition-colors hover:bg-paper";
 
   return (
-    <div className="flex flex-col gap-3">
-      {disabledReason ? (
+    <div className={layout === "footer" ? "flex flex-col gap-2" : "flex flex-col gap-3"}>
+      {disabledReason && layout !== "footer" ? (
         <p className="text-base font-medium text-ink/60">{disabledReason}</p>
       ) : null}
 
@@ -204,7 +234,7 @@ export function ApplyButton({
             setError(null);
             setOpen(true);
           }}
-          className="inline-flex min-h-12 w-fit items-center justify-center bg-line px-8 text-base font-bold text-ink transition-colors hover:bg-paper"
+          className={primaryButtonClass}
         >
           {primaryLabel}
         </button>
@@ -215,13 +245,17 @@ export function ApplyButton({
           type="button"
           disabled={withdrawing}
           onClick={withdraw}
-          className="inline-flex min-h-11 w-fit items-center border-2 border-ink/20 px-6 text-sm font-bold transition-colors hover:border-ink disabled:opacity-55"
+          className={
+            layout === "footer"
+              ? "min-h-10 w-full rounded-xl text-sm font-semibold text-muted transition-colors hover:text-ink disabled:opacity-55"
+              : "inline-flex min-h-11 w-fit items-center border-2 border-ink/20 px-6 text-sm font-bold transition-colors hover:border-ink disabled:opacity-55"
+          }
         >
           {withdrawing ? "處理中…" : "取消申請／退出名單"}
         </button>
       ) : null}
 
-      {error ? <p className="text-sm text-court">{error}</p> : null}
+      {error && layout !== "footer" ? <p className="text-sm text-court">{error}</p> : null}
 
       {open ? (
         <div
@@ -252,7 +286,7 @@ export function ApplyButton({
             <form onSubmit={submit} className="mt-6 flex flex-col gap-4">
               <div>
                 <label className="text-sm font-medium text-ink/70" htmlFor="apply-message">
-                  給房主的訊息（可選）
+                  給發起人的訊息（可選）
                 </label>
                 <textarea
                   id="apply-message"

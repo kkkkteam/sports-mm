@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { AppNav } from "@/components/app-nav";
-import { GameGrid } from "@/components/games/game-card";
+import {
+  GamesListView,
+  type GamesTab,
+} from "@/components/games/games-list-view";
 import type { GameListRow } from "@/components/games/game-list-item";
-import { GamesFilters } from "@/components/games/games-filters";
+import { AppNav } from "@/components/app-nav";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { getSessionUser } from "@/lib/profile";
-import type { HkDistrict, Sport } from "@/types/database";
+import { filterActiveSports } from "@/lib/sports";
+import type { Sport } from "@/types/database";
 
 export const dynamic = "force-dynamic";
+
+const VALID_TABS = new Set<GamesTab>(["discover", "hosting", "joined"]);
 
 export async function generateMetadata({
   params,
@@ -27,18 +31,16 @@ export default async function GamesPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{
-    q?: string;
-    sport?: string;
-    district?: string;
-    date?: string;
-  }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("games");
   const tNav = await getTranslations("nav");
   const queryParams = await searchParams;
+  const tab: GamesTab = VALID_TABS.has(queryParams.tab as GamesTab)
+    ? (queryParams.tab as GamesTab)
+    : "discover";
+
   const { supabase, user } = await getSessionUser();
 
   let nickname: string | null = null;
@@ -51,7 +53,7 @@ export default async function GamesPage({
       .select("*")
       .eq("is_active", true)
       .order("name_zh");
-    sports = (sportsResult.data ?? []) as Sport[];
+    sports = filterActiveSports((sportsResult.data ?? []) as Sport[]);
 
     if (user) {
       const { data: profile } = await supabase
@@ -62,80 +64,78 @@ export default async function GamesPage({
       nickname = profile?.nickname ?? null;
     }
 
-    let query = supabase
-      .from("games")
-      .select("*, sports(name_zh, name_en, slug), profiles!host_id(nickname)")
-      .in("status", ["open", "full"])
-      .gte("starts_at", new Date().toISOString())
-      .order("starts_at", { ascending: true });
+    const gameSelect =
+      "*, sports(name_zh, name_en, slug), profiles!host_id(nickname)";
 
-    if (queryParams.sport) query = query.eq("sport_id", queryParams.sport);
-    if (queryParams.district) {
-      query = query.eq("district", queryParams.district as HkDistrict);
-    }
-    if (queryParams.q?.trim()) {
-      const q = queryParams.q.trim();
-      query = query.or(`title.ilike.%${q}%,venue_label.ilike.%${q}%`);
-    }
-    if (queryParams.date) {
-      query = query
-        .gte("starts_at", `${queryParams.date}T00:00:00+08:00`)
-        .lte("starts_at", `${queryParams.date}T23:59:59.999+08:00`);
-    }
+    if (tab === "hosting" && user) {
+      const { data } = await supabase
+        .from("games")
+        .select(gameSelect)
+        .eq("host_id", user.id)
+        .in("status", ["open", "full"])
+        .gte("starts_at", new Date().toISOString())
+        .order("starts_at", { ascending: true });
+      games = (data ?? []) as GameListRow[];
+    } else if (tab === "joined" && user) {
+      const { data: joinedRows } = await supabase
+        .from("game_participants")
+        .select("game_id")
+        .eq("user_id", user.id);
 
-    const gamesResult = await query;
-    games = (gamesResult.data ?? []) as GameListRow[];
+      const joinedIds = (joinedRows ?? []).map((row) => row.game_id);
+
+      if (joinedIds.length > 0) {
+        const { data } = await supabase
+          .from("games")
+          .select(gameSelect)
+          .in("id", joinedIds)
+          .neq("host_id", user.id)
+          .in("status", ["open", "full"])
+          .gte("starts_at", new Date().toISOString())
+          .order("starts_at", { ascending: true });
+        games = (data ?? []) as GameListRow[];
+      }
+    } else {
+      const { data } = await supabase
+        .from("games")
+        .select(gameSelect)
+        .in("status", ["open", "full"])
+        .gte("starts_at", new Date().toISOString())
+        .order("starts_at", { ascending: true });
+      games = (data ?? []) as GameListRow[];
+    }
   }
 
   return (
-    <main className="min-h-dvh bg-paper text-ink">
+    <div className="min-h-full bg-canvas text-ink">
       {user ? (
         <AppNav nickname={nickname} active="games" />
       ) : (
-        <header className="flex flex-wrap items-center justify-between gap-4 px-5 py-5 md:px-12">
-          <Link href="/" className="font-display text-xl tracking-wide text-court md:text-2xl">
-            SPORTS MAP & MATCH
+        <header className="flex items-center justify-between gap-4 border-b border-line-subtle px-4 py-3">
+          <Link
+            href="/"
+            className="truncate text-sm font-bold tracking-tight text-ink"
+          >
+            Sports Map & Match
           </Link>
-          <div className="flex items-center gap-4">
-            <LanguageSwitcher />
-            <Link href="/login" className="text-sm font-medium hover:text-court">
+          <div className="flex shrink-0 items-center gap-2">
+            <LanguageSwitcher variant="light" />
+            <Link
+              href="/login"
+              className="rounded-full bg-mist px-4 py-2 text-xs font-semibold text-ink"
+            >
               {tNav("login")}
             </Link>
           </div>
         </header>
       )}
 
-      <div className="px-5 pb-20 md:px-12">
-        <div className="flex flex-col gap-4 pt-6 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="font-display text-sm tracking-[0.22em] text-court">FIND</p>
-            <h1 className="mt-2 text-[clamp(2.8rem,9vw,5.5rem)] font-black leading-none tracking-tight">
-              {t("findTitle")}
-            </h1>
-            <p className="mt-3 max-w-xl text-base text-ink/70">{t("findLede")}</p>
-          </div>
-          <Link
-            href={user ? "/games/new" : "/login"}
-            className="inline-flex min-h-11 items-center justify-center bg-ink px-6 text-sm font-bold text-paper transition-colors hover:bg-court"
-          >
-            {t("hostCta")}
-          </Link>
-        </div>
-
-        <Suspense
-          fallback={
-            <div className="border-y border-ink/15 py-8 text-sm text-ink/50">
-              {t("filter")}…
-            </div>
-          }
-        >
-          <GamesFilters sports={sports} />
-        </Suspense>
-
-        <section className="mt-8">
-          <GameGrid games={games} />
-        </section>
-      </div>
-    </main>
+      <GamesListView
+        games={games}
+        sports={sports}
+        tab={tab}
+        isAuthed={Boolean(user)}
+      />
+    </div>
   );
 }

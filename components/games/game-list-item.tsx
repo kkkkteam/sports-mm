@@ -43,7 +43,7 @@ export function GameListItem({ game }: { game: GameListRow }) {
             {formatHkTime(game.starts_at)}–{formatHkTime(game.ends_at)}
           </p>
           <p className="mt-1 text-sm text-ink/55">
-            房主 {game.profiles?.nickname ?? "—"} · 尚欠 {game.spots_needed} 人 ·{" "}
+            發起人 {game.profiles?.nickname ?? "—"} · 尚欠 {game.spots_needed} 人 ·{" "}
             {formatHkd(fee)}／人
           </p>
         </div>

@@ -46,6 +46,84 @@ export function formatHkd(amount: number) {
   }).format(amount);
 }
 
+/** Compact fee label for list cards, e.g. HKD$75 */
+export function formatHkdCompact(amount: number) {
+  if (!Number.isFinite(amount) || amount <= 0) return "HKD$0";
+  const rounded =
+    amount % 1 === 0 ? String(Math.round(amount)) : amount.toFixed(2);
+  return `HKD$${rounded}`;
+}
+
+export function formatGameDateParts(iso: string, locale: string) {
+  const date = new Date(iso);
+  const timeZone = "Asia/Hong_Kong";
+
+  const month = new Intl.DateTimeFormat(locale, {
+    timeZone,
+    month: "numeric",
+  }).format(date);
+
+  const day = new Intl.DateTimeFormat(locale, {
+    timeZone,
+    day: "numeric",
+  }).format(date);
+
+  const weekday = new Intl.DateTimeFormat(locale, {
+    timeZone,
+    weekday: "short",
+  }).format(date);
+
+  const monthLabel =
+    locale === "en"
+      ? new Intl.DateTimeFormat(locale, { timeZone, month: "short" }).format(date)
+      : `${month}月`;
+
+  return { month: monthLabel, day, weekday };
+}
+
+/** Compact date for info chips, e.g. 8月26日 (週三) */
+export function formatDateChip(iso: string, locale: string) {
+  const { month, day, weekday } = formatGameDateParts(iso, locale);
+  if (locale === "en") {
+    return `${month} ${day} (${weekday})`;
+  }
+  return `${month}${day}日 (${weekday})`;
+}
+
+export function formatTimeRange(startIso: string, endIso: string, locale: string) {
+  const timeZone = "Asia/Hong_Kong";
+  const fmt = new Intl.DateTimeFormat(locale, {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  return `${fmt.format(new Date(startIso))} - ${fmt.format(new Date(endIso))}`;
+}
+
+export function formatDurationHours(startIso: string, endIso: string, locale: string) {
+  const ms = new Date(endIso).getTime() - new Date(startIso).getTime();
+  const hours = Math.round((ms / (1000 * 60 * 60)) * 10) / 10;
+  if (locale === "en") {
+    return hours === 1 ? "1 hour" : `${hours} hours`;
+  }
+  return `${hours} 小時`;
+}
+
+export function formatDetailDateTime(iso: string, locale: string) {
+  const timeZone = "Asia/Hong_Kong";
+  return new Intl.DateTimeFormat(locale, {
+    timeZone,
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(iso));
+}
+
 export function costPerPerson(
   totalCostHkd: number | string,
   maxPlayers: number,

@@ -1,6 +1,5 @@
 const SPORTS = [
   { zh: "籃球", en: "Basketball" },
-  { zh: "健球", en: "Dodgebee" },
   { zh: "匹克球", en: "Pickleball" },
   { zh: "足球", en: "Football" },
   { zh: "羽毛球", en: "Badminton" },

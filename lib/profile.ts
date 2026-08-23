@@ -19,7 +19,13 @@ export async function getSessionUser() {
     const supabase = await createClient();
     const {
       data: { user },
+      error,
     } = await supabase.auth.getUser();
+
+    if (error) {
+      return { supabase: null, user: null };
+    }
+
     return { supabase, user };
   } catch {
     return { supabase: null, user: null };

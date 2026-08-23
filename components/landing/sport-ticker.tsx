@@ -1,6 +1,5 @@
 const ITEMS = [
   "籃球 BASKETBALL",
-  "健球 DODGEBEE",
   "匹克球 PICKLEBALL",
   "足球 FOOTBALL",
   "羽毛球 BADMINTON",

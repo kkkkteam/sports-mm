@@ -1,11 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import type { ReactNode } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import {
-  formatHkDate,
-  formatHkTime,
-  formatHkd,
+  formatDateChip,
+  formatHkdCompact,
+  formatTimeRange,
   gameCostPerPerson,
 } from "@/lib/format";
 import {
@@ -14,63 +15,37 @@ import {
   resolveGameLocation,
   type LatLng,
 } from "@/lib/geo";
-import { useUserLocation } from "@/hooks/use-user-location";
 import {
   HK_DISTRICT_LABELS,
-  type GameStatus,
+  SKILL_LEVEL_LABELS,
   type HkDistrict,
+  type SkillLevel,
 } from "@/types/database";
 import type { GameListRow } from "@/components/games/game-list-item";
 
-const SPORT_MARK: Record<string, string> = {
-  basketball: "B",
-  dodgebee: "D",
-  pickleball: "P",
-  football: "F",
-  badminton: "BD",
-  volleyball: "V",
-  tennis: "T",
-  table_tennis: "TT",
+const SPORT_EMOJI: Record<string, string> = {
+  basketball: "🏀",
+  badminton: "🏸",
+  table_tennis: "🏓",
+  tennis: "🎾",
+  football: "⚽",
+  volleyball: "🏐",
+  pickleball: "🎾",
 };
 
-function SportMark({ slug, name }: { slug?: string; name: string }) {
-  const mark = (slug && SPORT_MARK[slug]) || name.slice(0, 1);
+function Avatar({ name }: { name: string }) {
   return (
-    <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-court text-sm font-black text-paper">
-      {mark}
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-bold text-accent">
+      {name.slice(0, 1)}
     </span>
   );
 }
 
-function DistanceLine({
-  game,
-  userPosition,
-  locating,
-}: {
-  game: GameListRow;
-  userPosition: LatLng | null;
-  locating: boolean;
-}) {
-  const t = useTranslations("games");
-  const venue = resolveGameLocation(game);
-
-  if (locating) {
-    return <p className="text-sm text-ink/45">{t("distanceLocating")}</p>;
-  }
-
-  if (!userPosition) {
-    return <p className="text-sm text-ink/45">{t("distanceNeedPermission")}</p>;
-  }
-
-  if (!venue) {
-    return <p className="text-sm text-ink/45">{t("distanceUnknown")}</p>;
-  }
-
-  const km = distanceKm(userPosition, venue);
+function InfoChip({ children }: { children: ReactNode }) {
   return (
-    <p className="text-sm font-bold text-ink/70">
-      {t("distanceAway", { km: formatDistanceKm(km) })}
-    </p>
+    <span className="inline-flex items-center gap-1 rounded-lg bg-mist/80 px-2.5 py-1.5 text-xs font-medium text-ink ring-1 ring-line-subtle/60 dark:bg-surface">
+      {children}
+    </span>
   );
 }
 
@@ -84,121 +59,100 @@ export function GameCard({
   locating?: boolean;
 }) {
   const t = useTranslations("games");
+  const locale = useLocale();
   const fee = gameCostPerPerson(game);
   const district = game.district as HkDistrict;
-  const status = game.status as GameStatus;
-  const spots = game.spots_needed;
-  const sportName = game.sports?.name_zh ?? "—";
+  const skill = game.min_skill as SkillLevel | null;
   const hostName = game.profiles?.nickname ?? "—";
-  const hostInitial = hostName.slice(0, 1);
+  const sportSlug = game.sports?.slug ?? "";
+  const sportName =
+    locale === "en"
+      ? (game.sports?.name_en ?? game.sports?.name_zh ?? "—")
+      : (game.sports?.name_zh ?? "—");
+  const sportEmoji = SPORT_EMOJI[sportSlug] ?? "🏅";
+  const dateChip = formatDateChip(game.starts_at, locale);
+  const timeChip = formatTimeRange(game.starts_at, game.ends_at, locale);
+  const progress = Math.min(
+    100,
+    Math.round((game.current_players / Math.max(game.max_players, 1)) * 100),
+  );
+
+  const venue = resolveGameLocation(game);
+  let locationChip = HK_DISTRICT_LABELS[district];
+  if (locating) {
+    locationChip = t("distanceLocating");
+  } else if (userPosition && venue) {
+    locationChip = t("districtWithDistance", {
+      district: HK_DISTRICT_LABELS[district],
+      km: formatDistanceKm(distanceKm(userPosition, venue)),
+    });
+  }
+
+  const skillChip = skill ? SKILL_LEVEL_LABELS[skill] : t("skillAny");
 
   return (
-    <article className="flex h-full flex-col rounded-2xl border border-ink/10 bg-paper p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+    <Link
+      href={`/games/${game.id}`}
+      className="flex h-full flex-col rounded-2xl bg-surface p-4 shadow-[0_2px_14px_rgba(15,23,42,0.05)] ring-1 ring-line-subtle/70 transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,23,42,0.08)] dark:shadow-[0_2px_14px_rgba(0,0,0,0.3)]"
+    >
+      {/* Header */}
       <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <SportMark slug={game.sports?.slug} name={sportName} />
-          <div className="min-w-0">
-            <p className="truncate text-lg font-black tracking-tight">{sportName}</p>
-            <p className="text-xs text-ink/45">{HK_DISTRICT_LABELS[district]}</p>
-          </div>
+        <div className="flex min-w-0 items-center gap-2.5">
+          <Avatar name={hostName} />
+          <p className="min-w-0 text-sm text-muted">
+            <span className="font-semibold text-ink">{hostName}</span>{" "}
+            {t("initiatedActivity")}
+          </p>
         </div>
-        <span
-          className={`shrink-0 px-2.5 py-1 text-xs font-bold ${
-            status === "full" || spots <= 0
-              ? "bg-ink/10 text-ink/60"
-              : "bg-line text-ink"
-          }`}
-        >
-          {status === "full" || spots <= 0
-            ? t("full")
-            : t("spotsLeft", { count: spots })}
+        <span className="shrink-0 rounded-full bg-accent-soft px-2.5 py-1 text-[11px] font-semibold text-accent">
+          {sportEmoji} {sportName}
         </span>
       </div>
 
-      <div className="mt-5 flex-1 space-y-2">
-        <h2 className="text-xl font-black leading-snug tracking-tight">
-          {game.venue_label}
-        </h2>
-        <DistanceLine
-          game={game}
-          userPosition={userPosition ?? null}
-          locating={locating}
-        />
-        <p className="text-sm font-bold text-ink/80">
-          {formatHkDate(game.starts_at)} · {formatHkTime(game.starts_at)}–
-          {formatHkTime(game.ends_at)}
-        </p>
-        <p className="text-sm text-ink/55">
-          {t("fee")}{" "}
-          <span className="font-black text-court">
-            {t("perPerson", { amount: formatHkd(fee) })}
-          </span>
-        </p>
+      {/* Body */}
+      <h2 className="mt-4 text-lg font-black leading-snug tracking-tight text-ink">
+        {game.title}
+      </h2>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <InfoChip>
+          <span aria-hidden>🗓️</span>
+          {dateChip}
+        </InfoChip>
+        <InfoChip>
+          <span aria-hidden>⏰</span>
+          {timeChip}
+        </InfoChip>
+        <InfoChip>
+          <span aria-hidden>📍</span>
+          {locationChip}
+        </InfoChip>
+        <InfoChip>
+          <span aria-hidden>📊</span>
+          {skillChip}
+        </InfoChip>
       </div>
 
-      <div className="mt-6 flex items-center justify-between gap-3 border-t border-ink/10 pt-4">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center bg-ink text-sm font-black text-line">
-            {hostInitial}
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-bold">{hostName}</p>
-            <p className="text-xs text-ink/45">{t("host")}</p>
+      {/* Footer */}
+      <div className="mt-auto flex items-end justify-between gap-4 pt-5">
+        <div className="min-w-0 flex-1">
+          <p className="mb-1.5 text-xs font-semibold tabular-nums text-muted">
+            {t("spotsTakenPeople", {
+              current: game.current_players,
+              max: game.max_players,
+            })}
+          </p>
+          <div className="h-1.5 overflow-hidden rounded-full bg-mist">
+            <div
+              className="h-full rounded-full bg-accent transition-all"
+              style={{ width: `${progress}%` }}
+            />
           </div>
         </div>
-        <Link
-          href={`/games/${game.id}`}
-          className="inline-flex min-h-10 shrink-0 items-center bg-ink px-4 text-sm font-bold text-paper transition-colors hover:bg-court"
-        >
-          {t("join")}
-        </Link>
+        <p className="shrink-0 text-xl font-black tracking-tight text-ink">
+          {formatHkdCompact(fee)}
+        </p>
       </div>
-    </article>
-  );
-}
-
-export function GameGrid({ games }: { games: GameListRow[] }) {
-  const t = useTranslations("games");
-  const { status, position, request } = useUserLocation(true);
-  const locating = status === "idle" || status === "locating";
-
-  if (games.length === 0) {
-    return <p className="py-16 text-ink/60">{t("empty")}</p>;
-  }
-
-  const sorted = position
-    ? [...games].sort((a, b) => {
-        const locA = resolveGameLocation(a);
-        const locB = resolveGameLocation(b);
-        if (!locA && !locB) return 0;
-        if (!locA) return 1;
-        if (!locB) return -1;
-        return distanceKm(position, locA) - distanceKm(position, locB);
-      })
-    : games;
-
-  return (
-    <div>
-      {status === "denied" || status === "unavailable" || status === "error" ? (
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border border-ink/10 bg-mist/40 px-4 py-3 text-sm">
-          <p className="text-ink/70">{t("distancePermissionHint")}</p>
-          <button
-            type="button"
-            onClick={request}
-            className="min-h-9 bg-ink px-4 text-xs font-bold text-paper transition-colors hover:bg-court"
-          >
-            {t("distanceEnable")}
-          </button>
-        </div>
-      ) : null}
-
-      <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-        {sorted.map((game) => (
-          <li key={game.id}>
-            <GameCard game={game} userPosition={position} locating={locating} />
-          </li>
-        ))}
-      </ul>
-    </div>
+    </Link>
   );
 }

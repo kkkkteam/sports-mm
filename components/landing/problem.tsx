@@ -15,7 +15,7 @@ export function Problem() {
           className="reveal mt-8 max-w-2xl text-lg leading-relaxed text-ink/75 md:text-xl"
           style={{ animationDelay: "120ms" }}
         >
-          香港公共場地一位難求，私人場開支高。籃球、健球、匹克球湊不齊人，場就空著。拼場把已訂的局打開，讓人來補位、分擔費用。
+          香港公共場地一位難求，私人場開支高。籃球、匹克球、羽毛球湊不齊人，場就空著。拼場把已訂的局打開，讓人來補位、分擔費用。
         </p>
       </InView>
     </section>

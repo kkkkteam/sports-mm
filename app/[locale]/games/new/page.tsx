@@ -3,6 +3,7 @@ import { redirect } from "@/lib/redirect";
 import { AppNav } from "@/components/app-nav";
 import { CreateGameForm } from "@/components/games/create-game-form";
 import { getOrCreateProfile, getSessionUser } from "@/lib/profile";
+import { filterActiveSports } from "@/lib/sports";
 import type { Sport } from "@/types/database";
 
 export const metadata: Metadata = {
@@ -22,7 +23,7 @@ export default async function CreateGamePage() {
     supabase.from("sports").select("*").eq("is_active", true).order("name_zh"),
   ]);
 
-  const sports = (sportsResult.data ?? []) as Sport[];
+  const sports = filterActiveSports((sportsResult.data ?? []) as Sport[]);
 
   return (
     <main className="min-h-dvh bg-paper text-ink">
