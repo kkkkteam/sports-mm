@@ -2,6 +2,9 @@
 -- UAT seed data for Sports Map & Match
 -- Run in Supabase SQL Editor AFTER migrations. Safe to re-run.
 --
+-- Map testing (2026-08): 18 district venues with Google Places–style coordinates,
+-- ~22 future open/full games with lat/lng, 1 centroid-fallback game (no coords).
+--
 -- Test accounts (password for all: UatTest123!)
 --   host.uat@sportsshare.hk … player9.uat@sportsshare.hk  (10 members)
 -- =============================================================================
@@ -38,8 +41,10 @@ declare
   v_game_full uuid := 'b1000000-0000-4000-8000-000000000002';
   v_game_done uuid := 'b1000000-0000-4000-8000-000000000003';
   v_game_soon uuid := 'b1000000-0000-4000-8000-000000000004';
+  v_game_map_cluster uuid := 'b1000000-0000-4000-8000-000000000021';
+  v_game_map_centroid uuid := 'b1000000-0000-4000-8000-000000000022';
 
-  -- bulk games b…005 … b…024  (20 extra → 24 total)
+  -- bulk games b…005 … b…024  (20 extra)
   v_game_ids uuid[] := array[
     'b1000000-0000-4000-8000-000000000005'::uuid,
     'b1000000-0000-4000-8000-000000000006'::uuid,
@@ -65,18 +70,28 @@ declare
 
   v_all_game_ids uuid[];
 
+  -- 18 venues — one per HK district (WGS84, Places-style coords)
   v_venue_ids uuid[] := array[
-    'c1000000-0000-4000-8000-000000000001'::uuid,
-    'c1000000-0000-4000-8000-000000000002'::uuid,
-    'c1000000-0000-4000-8000-000000000003'::uuid,
-    'c1000000-0000-4000-8000-000000000004'::uuid,
-    'c1000000-0000-4000-8000-000000000005'::uuid,
-    'c1000000-0000-4000-8000-000000000006'::uuid,
-    'c1000000-0000-4000-8000-000000000007'::uuid,
-    'c1000000-0000-4000-8000-000000000008'::uuid
+    'c1000000-0000-4000-8000-000000000001'::uuid, -- central_western
+    'c1000000-0000-4000-8000-000000000002'::uuid, -- wan_chai
+    'c1000000-0000-4000-8000-000000000003'::uuid, -- eastern
+    'c1000000-0000-4000-8000-000000000004'::uuid, -- southern
+    'c1000000-0000-4000-8000-000000000005'::uuid, -- yau_tsim_mong
+    'c1000000-0000-4000-8000-000000000006'::uuid, -- sham_shui_po
+    'c1000000-0000-4000-8000-000000000007'::uuid, -- kowloon_city
+    'c1000000-0000-4000-8000-000000000008'::uuid, -- wong_tai_sin
+    'c1000000-0000-4000-8000-000000000009'::uuid, -- kwun_tong
+    'c1000000-0000-4000-8000-00000000000a'::uuid, -- kwai_tsing
+    'c1000000-0000-4000-8000-00000000000b'::uuid, -- tsuen_wan
+    'c1000000-0000-4000-8000-00000000000c'::uuid, -- tuen_mun
+    'c1000000-0000-4000-8000-00000000000d'::uuid, -- yuen_long
+    'c1000000-0000-4000-8000-00000000000e'::uuid, -- north
+    'c1000000-0000-4000-8000-00000000000f'::uuid, -- tai_po
+    'c1000000-0000-4000-8000-000000000010'::uuid, -- sha_tin
+    'c1000000-0000-4000-8000-000000000011'::uuid, -- sai_kung
+    'c1000000-0000-4000-8000-000000000012'::uuid  -- islands
   ];
 
-  -- direct chat rooms
   v_dm_1 uuid := 'd1000000-0000-4000-8000-000000000001';
   v_dm_2 uuid := 'd1000000-0000-4000-8000-000000000002';
   v_dm_3 uuid := 'd1000000-0000-4000-8000-000000000003';
@@ -107,6 +122,8 @@ declare
   v_dist public.hk_district;
   v_lat double precision;
   v_lng double precision;
+  v_base_lat double precision;
+  v_base_lng double precision;
   v_title text;
   v_label text;
   v_day int;
@@ -116,9 +133,11 @@ declare
   v_room uuid;
   v_applicant uuid;
   v_hk_start timestamptz;
+  v_slot int;
 begin
   v_all_game_ids := array[
-    v_game_open, v_game_full, v_game_done, v_game_soon
+    v_game_open, v_game_full, v_game_done, v_game_soon,
+    v_game_map_cluster, v_game_map_centroid
   ] || v_game_ids;
 
   v_hk_start := date_trunc('day', now() at time zone 'Asia/Hong_Kong')
@@ -281,30 +300,40 @@ begin
     (v_p9, v_table_tennis, 'beginner')
   on conflict do nothing;
 
-  -- ---------- venues (8) ----------
+  -- ---------- venues (18 districts) ----------
   insert into public.venues (id, name_zh, name_en, district, address, lat, lng, venue_type, created_by)
   values
-    (v_venue_ids[1], '麥花臣場館', 'MacPherson Stadium', 'yau_tsim_mong', '旺角梭椏道', 22.3193, 114.1694, 'public', v_host),
-    (v_venue_ids[2], '沙田公園籃球場', 'Sha Tin Park Courts', 'sha_tin', '沙田正街', 22.3810, 114.1880, 'public', v_host),
-    (v_venue_ids[3], '中山紀念公園網球場旁', 'Sun Yat Sen Memorial Park', 'central_western', '西營盤東邊街北', 22.2895, 114.1448, 'public', v_host),
-    (v_venue_ids[4], '維園籃球場', 'Victoria Park Courts', 'wan_chai', '銅鑼灣興發街', 22.2825, 114.1880, 'public', v_host),
-    (v_venue_ids[5], '觀塘海濱公園', 'Kwun Tong Promenade', 'kwun_tong', '觀塘海濱道', 22.3095, 114.2220, 'public', v_p3),
-    (v_venue_ids[6], '荃灣公園網球場', 'Tsuen Wan Park Tennis', 'tsuen_wan', '荃灣大河道', 22.3705, 114.1125, 'public', v_p6),
-    (v_venue_ids[7], '大埔海濱公園', 'Tai Po Waterfront', 'tai_po', '大埔海濱路', 22.4520, 114.1700, 'public', v_p7),
-    (v_venue_ids[8], '西貢足球場', 'Sai Kung Football Pitch', 'sai_kung', '西貢宜春街', 22.3815, 114.2710, 'public', v_p9);
+    (v_venue_ids[1],  '中山紀念公園',       'Sun Yat Sen Memorial Park',   'central_western', '西營盤東邊街北',   22.289983, 114.145401, 'public', v_host),
+    (v_venue_ids[2],  '修頓球場',           'Southorn Playground',         'wan_chai',        '灣仔莊士敦道',     22.277222, 114.173611, 'public', v_host),
+    (v_venue_ids[3],  '柴灣公園',           'Chai Wan Park',               'eastern',         '柴灣道',           22.264722, 114.241944, 'public', v_p4),
+    (v_venue_ids[4],  '香港仔運動場',       'Aberdeen Sports Ground',      'southern',        '香港仔黃竹坑道',   22.248611, 114.155833, 'public', v_host),
+    (v_venue_ids[5],  '麥花臣場館',         'MacPherson Stadium',          'yau_tsim_mong',   '旺角梭椏道',       22.319986, 114.172562, 'public', v_host),
+    (v_venue_ids[6],  '石硤尾公園',         'Shek Kip Mei Park',           'sham_shui_po',    '南昌街',           22.337500, 114.168056, 'public', v_p1),
+    (v_venue_ids[7],  '摩士公園',           'Morse Park',                  'kowloon_city',    '衙前圍道',         22.325833, 114.189722, 'public', v_p3),
+    (v_venue_ids[8],  '摩士公園(黃大仙)',   'Morse Park (Wong Tai Sin)',   'wong_tai_sin',    '鳳德道',           22.339722, 114.191944, 'public', v_p3),
+    (v_venue_ids[9],  '觀塘海濱花園',       'Kwun Tong Promenade',         'kwun_tong',       '觀塘海濱道',       22.307222, 114.215833, 'public', v_p3),
+    (v_venue_ids[10], '葵涌運動場',         'Kwai Chung Sports Ground',    'kwai_tsing',      '葵涌興芳路',       22.357222, 114.134722, 'public', v_p6),
+    (v_venue_ids[11], '荃灣公園',           'Tsuen Wan Park',              'tsuen_wan',       '荃灣永順街',       22.370278, 114.112778, 'public', v_p6),
+    (v_venue_ids[12], '屯門鄧肇堅運動場',   'Tang Shiu Kin Sports Ground', 'tuen_mun',        '屯門海皇路',       22.391667, 113.975833, 'public', v_p6),
+    (v_venue_ids[13], '元朗劇院',           'Yuen Long Theatre',           'yuen_long',       '元朗安樂路',       22.445833, 114.022778, 'public', v_p8),
+    (v_venue_ids[14], '上水運動場',         'Sheung Shui Sports Ground',   'north',           '上水新成路',       22.501389, 114.126111, 'public', v_p7),
+    (v_venue_ids[15], '大埔運動場',         'Tai Po Sports Ground',        'tai_po',          '大埔運動路',       22.451111, 114.175000, 'public', v_p7),
+    (v_venue_ids[16], '沙田公園',           'Sha Tin Park',                'sha_tin',         '沙田正街',         22.381389, 114.189722, 'public', v_p2),
+    (v_venue_ids[17], '西貢足球場',         'Sai Kung Football Pitch',     'sai_kung',        '西貢宜春街',       22.381111, 114.270833, 'public', v_p9),
+    (v_venue_ids[18], '長洲政府綜合大樓',   'Cheung Chau Complex',         'islands',         '長洲興隆後街',     22.207222, 114.029167, 'public', v_p9);
 
-  -- ========== scenario games (4) ==========
+  -- ========== scenario games (4) — map-visible where open/full ==========
   insert into public.games (
     id, host_id, sport_id, venue_id, venue_label, district, lat, lng,
     starts_at, ends_at, max_players, current_players, total_cost_hkd,
     cost_split_mode, min_skill, title, description, status
   ) values (
-    v_game_open, v_host, v_basketball, v_venue_ids[1], '旺角麥花臣球場',
-    'yau_tsim_mong', 22.3193, 114.1694,
-    v_hk_start + interval '2 days' + interval '19 hours',
-    v_hk_start + interval '2 days' + interval '21 hours',
+    v_game_open, v_host, v_basketball, v_venue_ids[5], '麥花臣場館',
+    'yau_tsim_mong', 22.319986, 114.172562,
+    v_hk_start + interval '1 day' + interval '19 hours',
+    v_hk_start + interval '1 day' + interval '21 hours',
     8, 1, 400, 'all_players', 'beginner',
-    'UAT｜旺角籃球夜場', 'UAT open — 尚有空位，可測申請／付款截圖。', 'open'
+    'UAT｜旺角籃球夜場', 'Map pin: 麥花臣場館 — open，可測申請。', 'open'
   );
 
   insert into public.games (
@@ -312,12 +341,12 @@ begin
     starts_at, ends_at, max_players, current_players, total_cost_hkd,
     cost_split_mode, title, description, status
   ) values (
-    v_game_full, v_host, v_pickle, v_venue_ids[3], '西營盤匹克球場',
-    'central_western', 22.2895, 114.1448,
-    v_hk_start + interval '3 days' + interval '10 hours',
-    v_hk_start + interval '3 days' + interval '12 hours',
+    v_game_full, v_host, v_pickle, v_venue_ids[1], '中山紀念公園',
+    'central_western', 22.289983, 114.145401,
+    v_hk_start + interval '2 days' + interval '10 hours',
+    v_hk_start + interval '2 days' + interval '12 hours',
     4, 1, 200, 'all_players',
-    'UAT｜港島匹克球（已滿）', 'UAT full — 申請會進候補。', 'open'
+    'UAT｜港島匹克球（已滿）', 'Map pin: 中山紀念公園 — full + waitlist。', 'open'
   );
 
   insert into public.applications (game_id, applicant_id, message, status) values
@@ -338,12 +367,12 @@ begin
     starts_at, ends_at, max_players, current_players, total_cost_hkd,
     cost_split_mode, title, description, status
   ) values (
-    v_game_done, v_host, v_badminton, v_venue_ids[2], '沙田羽毛球館',
-    'sha_tin', 22.3810, 114.1880,
+    v_game_done, v_host, v_badminton, v_venue_ids[16], '沙田公園',
+    'sha_tin', 22.381389, 114.189722,
     now() - interval '2 days',
     now() - interval '2 days' + interval '2 hours',
     4, 1, 160, 'all_players',
-    'UAT｜沙田羽毛球（已完成）', 'UAT completed — 可測出席與評分。', 'open'
+    'UAT｜沙田羽毛球（已完成）', 'Past — 不顯示於地圖。', 'open'
   );
   insert into public.applications (game_id, applicant_id, message, status) values
     (v_game_done, v_p1, null, 'pending'),
@@ -373,56 +402,128 @@ begin
     starts_at, ends_at, max_players, total_cost_hkd, cost_split_mode,
     title, description, status
   ) values (
-    v_game_soon, v_p2, v_volleyball, v_venue_ids[2], '沙田公園草地',
-    'sha_tin', 22.3825, 114.1895,
-    v_hk_start + interval '5 days' + interval '15 hours',
-    v_hk_start + interval '5 days' + interval '17 hours',
+    v_game_soon, v_p2, v_volleyball, v_venue_ids[16], '沙田公園',
+    'sha_tin', 22.382200, 114.190500,
+    v_hk_start + interval '3 days' + interval '15 hours',
+    v_hk_start + interval '3 days' + interval '17 hours',
     10, 0, 'all_players',
-    'UAT｜沙田排球新手局', '免費新手局，測列表／距離。', 'open'
+    'UAT｜沙田排球新手局', 'Map pin: 沙田公園 — 免費新手局。', 'open'
   );
 
-  -- ========== bulk games (20) ==========
+  -- ========== map-specific scenarios (2) ==========
+  insert into public.games (
+    id, host_id, sport_id, venue_id, venue_label, district, lat, lng,
+    starts_at, ends_at, max_players, total_cost_hkd, cost_split_mode,
+    min_skill, title, description, status
+  ) values (
+    v_game_map_cluster, v_p5, v_tennis, v_venue_ids[2], '修頓球場',
+    'wan_chai', 22.277222, 114.173611,
+    v_hk_start + interval '1 day' + interval '8 hours',
+    v_hk_start + interval '1 day' + interval '10 hours',
+    4, 320, 'joiners_only', 'intermediate',
+    'UAT｜灣仔網球早場', 'Map: 港島核心 — 場主免夾示範。', 'open'
+  );
+
+  insert into public.games (
+    id, host_id, sport_id, venue_id, venue_label, district, lat, lng,
+    starts_at, ends_at, max_players, total_cost_hkd, cost_split_mode,
+    title, description, status
+  ) values (
+    v_game_map_centroid, v_p1, v_basketball, null, '深水埗體育館（僅地區）',
+    'sham_shui_po', null, null,
+    v_hk_start + interval '4 days' + interval '18 hours',
+    v_hk_start + interval '4 days' + interval '20 hours',
+    6, 240, 'all_players',
+    'UAT｜深水埗籃球（無座標）', 'Map fallback: 使用地區中心點 sham_shui_po。', 'open'
+  );
+
+  -- ========== bulk games (20) — rotate 18 districts + coordinate jitter ==========
   for i in 1..20 loop
     v_gid := v_game_ids[i];
-    v_day := 1 + ((i - 1) % 10);
-    v_hour := 9 + ((i * 2) % 10);
+    v_day := 1 + ((i - 1) % 14);
+    v_hour := 8 + ((i * 3) % 12);
     v_max := case when i % 5 = 0 then 12 when i % 3 = 0 then 6 else 8 end;
     v_cost := case when i % 4 = 0 then 0 else (80 + (i * 20))::numeric end;
+    v_slot := (i - 1) % 18;
 
-    case ((i - 1) % 8)
+    case v_slot
       when 0 then
         v_host_u := v_host; v_sport := v_basketball; v_venue := v_venue_ids[1];
-        v_dist := 'yau_tsim_mong'; v_lat := 22.3193; v_lng := 114.1694;
-        v_label := '旺角麥花臣'; v_title := 'UAT｜旺角籃球 #' || i;
+        v_dist := 'central_western'; v_base_lat := 22.289983; v_base_lng := 114.145401;
+        v_label := '中山紀念公園'; v_title := 'UAT｜中西區籃球 #' || i;
       when 1 then
-        v_host_u := v_p2; v_sport := v_pickle; v_venue := v_venue_ids[3];
-        v_dist := 'central_western'; v_lat := 22.2895; v_lng := 114.1448;
-        v_label := '西營盤匹克'; v_title := 'UAT｜港島匹克 #' || i;
+        v_host_u := v_p5; v_sport := v_tennis; v_venue := v_venue_ids[2];
+        v_dist := 'wan_chai'; v_base_lat := 22.277222; v_base_lng := 114.173611;
+        v_label := '修頓球場'; v_title := 'UAT｜灣仔網球 #' || i;
       when 2 then
-        v_host_u := v_p5; v_sport := v_badminton; v_venue := v_venue_ids[4];
-        v_dist := 'wan_chai'; v_lat := 22.2825; v_lng := 114.1880;
-        v_label := '銅鑼灣羽球'; v_title := 'UAT｜灣仔羽毛球 #' || i;
+        v_host_u := v_p4; v_sport := v_football; v_venue := v_venue_ids[3];
+        v_dist := 'eastern'; v_base_lat := 22.264722; v_base_lng := 114.241944;
+        v_label := '柴灣公園'; v_title := 'UAT｜東區足球 #' || i;
       when 3 then
-        v_host_u := v_p6; v_sport := v_football; v_venue := v_venue_ids[6];
-        v_dist := 'tsuen_wan'; v_lat := 22.3705; v_lng := 114.1125;
-        v_label := '荃灣足球'; v_title := 'UAT｜荃灣足球 #' || i;
+        v_host_u := v_host; v_sport := v_volleyball; v_venue := v_venue_ids[4];
+        v_dist := 'southern'; v_base_lat := 22.248611; v_base_lng := 114.155833;
+        v_label := '香港仔運動場'; v_title := 'UAT｜南區排球 #' || i;
       when 4 then
-        v_host_u := v_p3; v_sport := v_volleyball; v_venue := v_venue_ids[5];
-        v_dist := 'kwun_tong'; v_lat := 22.3095; v_lng := 114.2220;
-        v_label := '觀塘排球'; v_title := 'UAT｜觀塘排球 #' || i;
+        v_host_u := v_host; v_sport := v_basketball; v_venue := v_venue_ids[5];
+        v_dist := 'yau_tsim_mong'; v_base_lat := 22.319986; v_base_lng := 114.172562;
+        v_label := '麥花臣場館'; v_title := 'UAT｜油尖旺籃球 #' || i;
       when 5 then
-        v_host_u := v_p8; v_sport := v_tennis; v_venue := v_venue_ids[6];
-        v_dist := 'tsuen_wan'; v_lat := 22.3710; v_lng := 114.1130;
-        v_label := '荃灣網球'; v_title := 'UAT｜荃灣網球 #' || i;
+        v_host_u := v_p1; v_sport := v_badminton; v_venue := v_venue_ids[6];
+        v_dist := 'sham_shui_po'; v_base_lat := 22.337500; v_base_lng := 114.168056;
+        v_label := '石硤尾公園'; v_title := 'UAT｜深水埗羽球 #' || i;
       when 6 then
-        v_host_u := v_p7; v_sport := v_table_tennis; v_venue := v_venue_ids[7];
-        v_dist := 'tai_po'; v_lat := 22.4520; v_lng := 114.1700;
-        v_label := '大埔乒乓'; v_title := 'UAT｜大埔乒乓 #' || i;
+        v_host_u := v_p3; v_sport := v_football; v_venue := v_venue_ids[7];
+        v_dist := 'kowloon_city'; v_base_lat := 22.325833; v_base_lng := 114.189722;
+        v_label := '摩士公園'; v_title := 'UAT｜九龍城足球 #' || i;
+      when 7 then
+        v_host_u := v_p3; v_sport := v_basketball; v_venue := v_venue_ids[8];
+        v_dist := 'wong_tai_sin'; v_base_lat := 22.339722; v_base_lng := 114.191944;
+        v_label := '摩士公園(黃大仙)'; v_title := 'UAT｜黃大仙籃球 #' || i;
+      when 8 then
+        v_host_u := v_p3; v_sport := v_volleyball; v_venue := v_venue_ids[9];
+        v_dist := 'kwun_tong'; v_base_lat := 22.307222; v_base_lng := 114.215833;
+        v_label := '觀塘海濱花園'; v_title := 'UAT｜觀塘排球 #' || i;
+      when 9 then
+        v_host_u := v_p6; v_sport := v_table_tennis; v_venue := v_venue_ids[10];
+        v_dist := 'kwai_tsing'; v_base_lat := 22.357222; v_base_lng := 114.134722;
+        v_label := '葵涌運動場'; v_title := 'UAT｜葵青乒乓 #' || i;
+      when 10 then
+        v_host_u := v_p6; v_sport := v_football; v_venue := v_venue_ids[11];
+        v_dist := 'tsuen_wan'; v_base_lat := 22.370278; v_base_lng := 114.112778;
+        v_label := '荃灣公園'; v_title := 'UAT｜荃灣足球 #' || i;
+      when 11 then
+        v_host_u := v_p6; v_sport := v_basketball; v_venue := v_venue_ids[12];
+        v_dist := 'tuen_mun'; v_base_lat := 22.391667; v_base_lng := 113.975833;
+        v_label := '屯門鄧肇堅運動場'; v_title := 'UAT｜屯門籃球 #' || i;
+      when 12 then
+        v_host_u := v_p8; v_sport := v_tennis; v_venue := v_venue_ids[13];
+        v_dist := 'yuen_long'; v_base_lat := 22.445833; v_base_lng := 114.022778;
+        v_label := '元朗劇院'; v_title := 'UAT｜元朗網球 #' || i;
+      when 13 then
+        v_host_u := v_p7; v_sport := v_volleyball; v_venue := v_venue_ids[14];
+        v_dist := 'north'; v_base_lat := 22.501389; v_base_lng := 114.126111;
+        v_label := '上水運動場'; v_title := 'UAT｜北區排球 #' || i;
+      when 14 then
+        v_host_u := v_p7; v_sport := v_table_tennis; v_venue := v_venue_ids[15];
+        v_dist := 'tai_po'; v_base_lat := 22.451111; v_base_lng := 114.175000;
+        v_label := '大埔運動場'; v_title := 'UAT｜大埔乒乓 #' || i;
+      when 15 then
+        v_host_u := v_p2; v_sport := v_pickle; v_venue := v_venue_ids[16];
+        v_dist := 'sha_tin'; v_base_lat := 22.381389; v_base_lng := 114.189722;
+        v_label := '沙田公園'; v_title := 'UAT｜沙田匹克 #' || i;
+      when 16 then
+        v_host_u := v_p9; v_sport := v_volleyball; v_venue := v_venue_ids[17];
+        v_dist := 'sai_kung'; v_base_lat := 22.381111; v_base_lng := 114.270833;
+        v_label := '西貢足球場'; v_title := 'UAT｜西貢排球 #' || i;
       else
-        v_host_u := v_p9; v_sport := v_volleyball; v_venue := v_venue_ids[8];
-        v_dist := 'sai_kung'; v_lat := 22.3815; v_lng := 114.2710;
-        v_label := '西貢草地'; v_title := 'UAT｜西貢排球 #' || i;
+        v_host_u := v_p9; v_sport := v_football; v_venue := v_venue_ids[18];
+        v_dist := 'islands'; v_base_lat := 22.207222; v_base_lng := 114.029167;
+        v_label := '長洲政府綜合大樓'; v_title := 'UAT｜離島足球 #' || i;
     end case;
+
+    -- Spread pins near the same venue so map markers don't fully overlap
+    v_lat := v_base_lat + ((i % 5) - 2) * 0.0018;
+    v_lng := v_base_lng + ((i % 7) - 3) * 0.0018;
 
     insert into public.games (
       id, host_id, sport_id, venue_id, venue_label, district, lat, lng,
@@ -432,15 +533,19 @@ begin
       v_gid, v_host_u, v_sport, v_venue, v_label, v_dist, v_lat, v_lng,
       v_hk_start + (v_day || ' days')::interval + (v_hour || ' hours')::interval,
       v_hk_start + (v_day || ' days')::interval + ((v_hour + 2) || ' hours')::interval,
-      v_max, v_cost, 'all_players',
+      v_max, v_cost, case when i % 6 = 0 then 'joiners_only'::public.cost_split_mode else 'all_players'::public.cost_split_mode end,
       case when i % 3 = 0 then 'intermediate'::public.skill_level else 'beginner'::public.skill_level end,
       v_title,
-      'UAT bulk seed #' || i || ' — 多運動／多區放場示範。',
-      'open'
+      'UAT bulk #' || i || ' — 18區地圖分佈 + 座標 jitter。',
+      case when i = 18 then 'cancelled'::public.game_status when i = 20 then 'full'::public.game_status else 'open'::public.game_status end
     );
 
-    -- sprinkle applicants on every other game
-    if i % 2 = 0 then
+    if i = 20 then
+      update public.games set current_players = v_max where id = v_gid;
+    end if;
+
+    -- Skip cancelled (18) and pre-filled full (20) games — accept trigger rejects when roster is full
+    if i % 2 = 0 and i not in (18, 20) then
       v_applicant := v_ids[1 + ((i + 2) % 10)];
       if v_applicant <> v_host_u then
         insert into public.applications (game_id, applicant_id, message, status)
@@ -454,20 +559,14 @@ begin
     end if;
   end loop;
 
-  -- one cancelled + one near-full for variety
-  update public.games
-  set status = 'cancelled',
-      title = 'UAT｜已取消示範場',
-      description = 'UAT cancelled sample'
-  where id = v_game_ids[19];
-
+  -- past completed sample (not on map)
   update public.games
   set status = 'completed',
       title = 'UAT｜已完成足球夜場',
-      description = 'UAT completed bulk sample',
+      description = 'Past bulk sample — 不顯示於地圖。',
       starts_at = now() - interval '5 days',
       ends_at = now() - interval '5 days' + interval '2 hours'
-  where id = v_game_ids[20];
+  where id = v_game_ids[17];
 
   -- ========== friendships ==========
   insert into public.friendships (requester_id, addressee_id, status) values
@@ -514,7 +613,6 @@ begin
     (v_dm_5, v_p5, 'text', '有，教練會帶一開始。', now() - interval '60 minutes'),
     (v_dm_5, v_p9, 'text', '太好了，我申請入。', now() - interval '30 minutes');
 
-  -- ========== game chat messages ==========
   select chat_room_id into v_room from public.games where id = v_game_open;
   if v_room is not null then
     insert into public.messages (room_id, sender_id, type, content, created_at) values
@@ -536,11 +634,17 @@ begin
       (v_room, v_p2, 'text', '新手局免費，歡迎第一次玩排球。', now() - interval '3 hours');
   end if;
 
+  select chat_room_id into v_room from public.games where id = v_game_map_cluster;
+  if v_room is not null then
+    insert into public.messages (room_id, sender_id, type, content, created_at) values
+      (v_room, v_p5, 'text', '修頓球場早場，場主免夾。', now() - interval '2 hours');
+  end if;
+
   select chat_room_id into v_room from public.games where id = v_game_ids[3];
   if v_room is not null then
     insert into public.messages (room_id, sender_id, type, content, created_at) values
-      (v_room, v_p5, 'text', '灣仔羽球，請自備球拍。', now() - interval '2 hours'),
-      (v_room, v_p5, 'text', '遲到超過 15 分鐘會讓位。', now() - interval '90 minutes');
+      (v_room, v_p4, 'text', '柴灣足球，請自備球靴。', now() - interval '2 hours'),
+      (v_room, v_p4, 'text', '遲到超過 15 分鐘會讓位。', now() - interval '90 minutes');
   end if;
 
   if to_regclass('public.smart_alerts') is not null then
@@ -551,5 +655,5 @@ begin
       (v_p7, 'tai_po', v_table_tennis, true);
   end if;
 
-  raise notice 'UAT seed complete: 10 users, 8 venues, 24 games, 5 DMs. Login *.uat@sportsshare.hk / UatTest123!';
+  raise notice 'UAT seed complete: 10 users, 18 venues, 26 games (~23 map-visible). Login *.uat@sportsshare.hk / UatTest123!';
 end $$;

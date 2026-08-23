@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ProfileHeaderCard } from "@/components/profile/profile-header-card";
+import { ProfilePaymentMethodsSection } from "@/components/profile/profile-payment-methods-section";
 import { ProfileSettingsSection } from "@/components/profile/profile-settings-section";
 import { ProfileSportSkills } from "@/components/profile/profile-sport-skills";
 import { ProfileStatsGrid } from "@/components/profile/profile-stats-grid";
@@ -31,6 +32,10 @@ export function ProfilePageView({
         sports={sports}
         skills={skillsState}
         onSkillsChange={setSkillsState}
+      />
+      <ProfilePaymentMethodsSection
+        profile={profileState}
+        onProfileUpdate={setProfileState}
       />
       <ProfileSettingsSection
         profile={profileState}

@@ -11,6 +11,7 @@ import {
   gameCostPerPerson,
 } from "@/lib/format";
 import { handleAddToCalendar } from "@/components/games/game-calendar-action";
+import { HostPaymentMethodsBlock } from "@/components/games/host-payment-methods-block";
 import { openMap } from "@/lib/open-map";
 import {
   HK_DISTRICT_LABELS,
@@ -51,6 +52,7 @@ export type GameDetailData = {
     nickname: string;
     rating: number | null;
     ratingCount: number;
+    acceptedPaymentMethods: string[];
   };
   participants: GameDetailParticipant[];
 };
@@ -279,6 +281,10 @@ function DetailsTab({
         </div>
       </section>
 
+      <HostPaymentMethodsBlock
+        acceptedPaymentMethods={game.host.acceptedPaymentMethods}
+      />
+
       <div className="grid grid-cols-3 gap-2">
         <InfoGridItem label={t("matchType")} value={matchType} />
         <InfoGridItem label={t("duration")} value={duration} />
@@ -427,7 +433,7 @@ export function GameDetailView({
         </div>
       </header>
 
-      <div className="flex-1 pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-4">
+      <div className="flex-1 overflow-y-auto pb-40 pt-4 [-webkit-overflow-scrolling:touch]">
         <div className="px-4 pb-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-accent">
             {game.sportName}
@@ -450,8 +456,12 @@ export function GameDetailView({
         {extra ? <div className="mt-6 px-4">{extra}</div> : null}
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line-subtle bg-surface/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md">
-        {footer}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[80px] z-40">
+        <div className="pointer-events-auto mx-auto w-full px-4 md:w-[90%] md:max-w-7xl">
+          <div className="rounded-t-2xl bg-white/90 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] backdrop-blur-sm dark:bg-card/90">
+            {footer}
+          </div>
+        </div>
       </div>
     </div>
   );

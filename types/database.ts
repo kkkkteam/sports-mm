@@ -26,6 +26,7 @@ export type HkDistrict =
 export type VenueType = "public" | "private" | "school" | "club" | "other";
 export type GameStatus = "open" | "full" | "cancelled" | "completed";
 export type CostSplitMode = "all_players" | "joiners_only";
+export type GamePaymentMethod = "on_site" | "transfer" | "both";
 export type ApplicationStatus =
   | "pending"
   | "accepted"
@@ -120,6 +121,7 @@ export interface Profile {
   bio: string | null;
   district: HkDistrict | null;
   phone_visible_after_join: boolean;
+  accepted_payment_methods: string[];
   games_hosted_count: number;
   games_joined_count: number;
   games_completed_count: number;
@@ -178,6 +180,7 @@ export interface Game {
   spots_needed: number;
   total_cost_hkd: number;
   cost_split_mode: CostSplitMode;
+  payment_method: GamePaymentMethod;
   min_skill: SkillLevel | null;
   title: string;
   description: string | null;
@@ -203,6 +206,8 @@ export interface Application {
   message: string | null;
   status: ApplicationStatus;
   payment_proof_url: string | null;
+  guests_count: number;
+  total_spots_requested: number;
   waitlisted_at: string | null;
   created_at: string;
   decided_at: string | null;

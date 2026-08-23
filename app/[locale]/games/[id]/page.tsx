@@ -2,7 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { ApplyButton } from "@/components/games/apply-button";
+import {
+  ApplyButton,
+  type ApplyActionState,
+  type JoinedPaymentStatus,
+} from "@/components/games/apply-button";
+import { AcceptedStatusBanner } from "@/components/games/accepted-status-banner";
+import { PaymentProofPanel } from "@/components/games/payment-proof-panel";
 import { AttendancePanel } from "@/components/games/attendance-panel";
 import { CompleteGameButton } from "@/components/games/complete-game-button";
 import {
@@ -16,6 +22,7 @@ import type {
   Application,
   AttendanceStatus,
   Game,
+  GamePaymentMethod,
   GameStatus,
   HkDistrict,
   Profile,
@@ -29,7 +36,12 @@ type GameDetail = Game & {
   sports: Pick<Sport, "name_zh" | "name_en"> | null;
   profiles: Pick<
     Profile,
-    "nickname" | "id" | "rating" | "rating_count" | "attendance_rate"
+    | "nickname"
+    | "id"
+    | "rating"
+    | "rating_count"
+    | "attendance_rate"
+    | "accepted_payment_methods"
   > | null;
 };
 
@@ -60,7 +72,7 @@ export default async function GameDetailPage({
   const { data: gameData } = await supabase
     .from("games")
     .select(
-      "*, sports(name_zh, name_en), profiles!host_id(id, nickname, rating, rating_count, attendance_rate)",
+      "*, sports(name_zh, name_en), profiles!host_id(id, nickname, rating, rating_count, attendance_rate, accepted_payment_methods)",
     )
     .eq("id", id)
     .maybeSingle();
@@ -119,15 +131,17 @@ export default async function GameDetailPage({
   }
 
   const isHost = user?.id === game.host_id;
-  let disabledReason: string | null = null;
   const pendingApplication = myApplication?.status === "pending";
   const waitlistedApplication = myApplication?.status === "waitlisted";
-  const editableApplication = pendingApplication || waitlistedApplication;
+  const acceptedApplication = myApplication?.status === "accepted";
+  const isAcceptedMember = isParticipant || acceptedApplication;
+  const paymentMethod = (game.payment_method ?? "both") as GamePaymentMethod;
   const canWithdraw =
     myApplication?.status === "pending" ||
     myApplication?.status === "waitlisted" ||
     myApplication?.status === "accepted";
   const gameIsFull = status === "full" || game.spots_needed <= 0;
+  const gameStarted = new Date(game.starts_at) < new Date();
   const waitlistMode =
     gameIsFull &&
     !isHost &&
@@ -135,31 +149,66 @@ export default async function GameDetailPage({
     !myApplication &&
     status !== "cancelled" &&
     status !== "completed" &&
-    new Date(game.starts_at) >= new Date();
+    !gameStarted;
 
-  if (isHost) {
-    disabledReason = "這是你發佈的場次。";
-  } else if (isParticipant || myApplication?.status === "accepted") {
-    disabledReason = "你已在名單中。";
+  let actionState: ApplyActionState;
+  let unavailableMessage: string | null = null;
+
+  if (!user) {
+    actionState = "login";
+  } else if (isHost) {
+    actionState = "host";
   } else if (pendingApplication) {
-    disabledReason = "申請審批中，請等待發起人回覆。";
+    actionState = "pending";
   } else if (waitlistedApplication) {
-    disabledReason = "你已在候補名單，有空缺時會自動轉為待審批。";
-  } else if (myApplication?.status === "rejected") {
-    disabledReason = "發起人已拒絕此申請。";
-  } else if (myApplication?.status === "withdrawn") {
-    disabledReason = "你已取消此申請。";
+    actionState = "waitlisted";
+  } else if (isAcceptedMember) {
+    actionState = "joined";
   } else if (status === "cancelled") {
-    disabledReason = "此場次已取消。";
+    actionState = "unavailable";
+    unavailableMessage = "此場次已取消。";
   } else if (status === "completed") {
-    disabledReason = "此場次已完成。";
-  } else if (new Date(game.starts_at) < new Date()) {
-    disabledReason = "此場次已開始或已過期。";
+    actionState = "unavailable";
+    unavailableMessage = "此場次已完成。";
+  } else if (gameStarted) {
+    actionState = "unavailable";
+    unavailableMessage = "此場次已開始或已過期。";
+  } else if (myApplication?.status === "rejected") {
+    actionState = "unavailable";
+    unavailableMessage = "發起人已拒絕此申請。";
+  } else if (myApplication?.status === "withdrawn") {
+    actionState = "unavailable";
+    unavailableMessage = "你已取消此申請。";
   } else if (waitlistMode) {
-    disabledReason = null;
+    actionState = "waitlist";
   } else if (gameIsFull) {
-    disabledReason = "此場次已滿。";
+    actionState = "unavailable";
+    unavailableMessage = "此場次已滿。";
+  } else {
+    actionState = "apply";
   }
+
+  let joinedPaymentStatus: JoinedPaymentStatus | undefined;
+  if (actionState === "joined") {
+    if (paymentMethod === "on_site") {
+      joinedPaymentStatus = "on_site";
+    } else if (myApplication?.payment_proof_url) {
+      joinedPaymentStatus = "proof_done";
+    } else {
+      joinedPaymentStatus = "needs_proof";
+    }
+  }
+
+  const showProofUploadPanel =
+    !isHost &&
+    isAcceptedMember &&
+    joinedPaymentStatus === "needs_proof" &&
+    Boolean(user && myApplication?.id);
+
+  const showAcceptedBanner =
+    !isHost &&
+    isAcceptedMember &&
+    (joinedPaymentStatus === "on_site" || joinedPaymentStatus === "proof_done");
 
   const nonHostParticipants = participants.filter(
     (row) => row.user_id !== game.host_id,
@@ -215,45 +264,38 @@ export default async function GameDetailPage({
       nickname: game.profiles?.nickname ?? "—",
       rating: game.profiles?.rating ?? null,
       ratingCount: game.profiles?.rating_count ?? 0,
+      acceptedPaymentMethods: game.profiles?.accepted_payment_methods ?? [],
     },
     participants: participantViews,
   };
 
-  const footer = isHost ? (
-    <div className="flex flex-col gap-2">
-      <Link
-        href="/host"
-        className="flex min-h-12 w-full items-center justify-center rounded-xl bg-accent text-base font-bold text-on-accent"
-      >
-        前往審批申請
-      </Link>
-      {game.chat_room_id ? (
-        <Link
-          href={`/chat/${game.chat_room_id}`}
-          className="flex min-h-10 w-full items-center justify-center text-sm font-semibold text-accent"
-        >
-          場次群組聊天
-        </Link>
-      ) : null}
-    </div>
-  ) : (
+  const remainingSpots = Math.max(0, game.spots_needed);
+
+  const footer = (
     <ApplyButton
       gameId={game.id}
       userId={user?.id ?? null}
-      disabledReason={disabledReason}
-      mode={waitlistMode ? "waitlist" : "apply"}
-      onWithdraw={canWithdraw}
-      allowProofUpdate={editableApplication}
+      actionState={actionState}
+      unavailableMessage={unavailableMessage}
+      joinedPaymentStatus={joinedPaymentStatus}
+      remainingSpots={remainingSpots}
       existingApplicationId={myApplication?.id ?? null}
-      existingProofUrl={
-        editableApplication ? (myApplication?.payment_proof_url ?? null) : null
-      }
+      onWithdraw={canWithdraw}
       layout="footer"
     />
   );
 
   const extra = (
     <>
+      {showProofUploadPanel && user && myApplication ? (
+        <PaymentProofPanel applicationId={myApplication.id} userId={user.id} />
+      ) : null}
+
+      {showAcceptedBanner && joinedPaymentStatus ? (
+        <AcceptedStatusBanner
+          variant={joinedPaymentStatus === "on_site" ? "on_site" : "proof_done"}
+        />
+      ) : null}
       {isHost && status !== "completed" && status !== "cancelled" ? (
         <CompleteGameButton gameId={game.id} />
       ) : null}
@@ -289,6 +331,15 @@ export default async function GameDetailPage({
             ))}
           </ul>
         </section>
+      ) : null}
+
+      {isHost && game.chat_room_id ? (
+        <Link
+          href={`/chat/${game.chat_room_id}`}
+          className="mt-4 flex min-h-11 items-center justify-center rounded-xl bg-mist text-sm font-semibold text-ink"
+        >
+          場次群組聊天
+        </Link>
       ) : null}
 
       {isParticipant && !isHost && game.chat_room_id ? (
