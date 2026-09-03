@@ -310,3 +310,24 @@ body {
     transform: none;
   }
 }
+
+/* Google Places dropdown — above bottom nav & fixed footers */
+.pac-container {
+  z-index: 10000 !important;
+  border-radius: 0.75rem;
+  border: 1px solid var(--line-subtle);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+  margin-top: 4px;
+  font-family: inherit;
+}
+
+.pac-item {
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+  line-height: 1.35;
+}
+
+.pac-item:hover,
+.pac-item-selected {
+  background: var(--mist);
+}

@@ -108,7 +108,8 @@ export function HostGameStepTimeLocation({
           {t("venueLabel")}
         </label>
         <VenuePlacesAutocomplete
-          value={form.venueLabel}
+          venueLabel={form.venueLabel}
+          venueDetail={form.venueDetail}
           hasCoords={hasCoords}
           onVenueChange={(patch) => onChange(patch)}
         />

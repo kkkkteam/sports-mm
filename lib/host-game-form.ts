@@ -13,6 +13,7 @@ export type HostGameFormData = {
   endTime: string;
   district: HkDistrict;
   venueLabel: string;
+  venueDetail: string;
   lat: number | null;
   lng: number | null;
   maxPlayers: number;
@@ -49,6 +50,7 @@ export function createInitialHostGameFormData(
     endTime,
     district: defaultDistrict ?? "yau_tsim_mong",
     venueLabel: "",
+    venueDetail: "",
     lat: null,
     lng: null,
     maxPlayers: Math.max(2, firstSport?.min_players ?? 4),
@@ -57,6 +59,15 @@ export function createInitialHostGameFormData(
     paymentMethod: "both",
     remarks: "",
   };
+}
+
+/** Combine building name with optional floor / unit for display & storage. */
+export function formatVenueLabel(form: Pick<HostGameFormData, "venueLabel" | "venueDetail">) {
+  const base = form.venueLabel.trim();
+  const detail = form.venueDetail.trim();
+  if (!detail) return base;
+  if (!base) return detail;
+  return `${base} · ${detail}`.slice(0, 80);
 }
 
 export function buildGameInsertPayload(
@@ -69,7 +80,7 @@ export function buildGameInsertPayload(
     throw new Error("missing_sport");
   }
 
-  const venueLabel = form.venueLabel.trim();
+  const venueLabel = formatVenueLabel(form);
   const startsAt = datetimeLocalToIso(`${form.date}T${form.startTime}`);
   const endsAt = datetimeLocalToIso(`${form.date}T${form.endTime}`);
 
