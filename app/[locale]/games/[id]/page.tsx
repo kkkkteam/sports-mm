@@ -269,8 +269,6 @@ export default async function GameDetailPage({
     participants: participantViews,
   };
 
-  const remainingSpots = Math.max(0, game.spots_needed);
-
   const footer = (
     <ApplyButton
       gameId={game.id}
@@ -278,7 +276,6 @@ export default async function GameDetailPage({
       actionState={actionState}
       unavailableMessage={unavailableMessage}
       joinedPaymentStatus={joinedPaymentStatus}
-      remainingSpots={remainingSpots}
       existingApplicationId={myApplication?.id ?? null}
       onWithdraw={canWithdraw}
       layout="footer"

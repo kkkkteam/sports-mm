@@ -43,6 +43,7 @@ export default async function AdminDashboardPage() {
     activeGamesResult,
     completedGamesResult,
     todayMessagesResult,
+    privateVenuesResult,
   ] = await Promise.all([
     supabase.from("profiles").select("id", { count: "exact", head: true }),
     supabase
@@ -58,6 +59,10 @@ export default async function AdminDashboardPage() {
       .select("id", { count: "exact", head: true })
       .gte("created_at", startOfTodayHk)
       .is("deleted_at", null),
+    supabase
+      .from("private_venues")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "active"),
   ]);
 
   const queryErrors = [
@@ -65,6 +70,7 @@ export default async function AdminDashboardPage() {
     activeGamesResult.error?.message,
     completedGamesResult.error?.message,
     todayMessagesResult.error?.message,
+    privateVenuesResult.error?.message,
   ].filter(Boolean);
 
   const stats: StatCard[] = [
@@ -91,6 +97,12 @@ export default async function AdminDashboardPage() {
       hint: "messages · HK 今日",
       href: "/admin-manage/messages",
     },
+    {
+      label: "上架中私人場地",
+      value: privateVenuesResult.error ? "—" : String(privateVenuesResult.count ?? 0),
+      hint: "private_venues · active",
+      href: "/admin-manage/venues",
+    },
   ];
 
   return (
@@ -116,7 +128,7 @@ export default async function AdminDashboardPage() {
         </div>
       ) : null}
 
-      <ul className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <ul className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {stats.map((stat) => {
           const inner = (
             <>

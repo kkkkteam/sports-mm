@@ -24,6 +24,7 @@ export type HkDistrict =
   | "sai_kung"
   | "islands";
 export type VenueType = "public" | "private" | "school" | "club" | "other";
+export type PrivateVenueStatus = "active" | "inactive";
 export type GameStatus = "open" | "full" | "cancelled" | "completed";
 export type CostSplitMode = "all_players" | "joiners_only";
 export type GamePaymentMethod = "on_site" | "transfer" | "both";
@@ -162,6 +163,23 @@ export interface Venue {
   venue_type: VenueType;
   created_by: string | null;
   created_at: string;
+}
+
+export interface PrivateVenue {
+  id: string;
+  name: string;
+  description: string | null;
+  sport_types: string[];
+  district: HkDistrict;
+  address: string;
+  lat: number | null;
+  lng: number | null;
+  facilities: string[];
+  images: string[];
+  booking_link: string | null;
+  status: PrivateVenueStatus;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Game {

@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { SportIcon } from "@/components/host/sport-icon";
+import { HostVenuePrefillNotice } from "@/components/host/host-venue-prefill-notice";
 import type { HostGameFormData, HostMinSkill } from "@/lib/host-game-form";
 import type { Sport } from "@/types/database";
 
@@ -17,18 +18,24 @@ type HostGameStepSportProps = {
   form: HostGameFormData;
   sports: Sport[];
   onChange: (patch: Partial<HostGameFormData>) => void;
+  prefillVenueName?: string;
 };
 
 export function HostGameStepSport({
   form,
   sports,
   onChange,
+  prefillVenueName,
 }: HostGameStepSportProps) {
   const t = useTranslations("hostGame");
   const locale = useLocale();
 
   return (
     <section className="space-y-8">
+      {prefillVenueName ? (
+        <HostVenuePrefillNotice venueName={prefillVenueName} />
+      ) : null}
+
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
           {t("step1Title")}

@@ -4,12 +4,12 @@ import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 
-type TabKey = "home" | "map" | "host" | "chats" | "profile";
+type TabKey = "home" | "map" | "venues" | "host" | "chats" | "profile";
 
 const tabs: {
   key: TabKey;
-  href: "/games" | "/map" | "/games/new" | "/chat" | "/profile";
-  labelKey: "home" | "map" | "hostTab" | "chats" | "profile";
+  href: "/games" | "/map" | "/venues" | "/games/new" | "/chat" | "/profile";
+  labelKey: "home" | "map" | "venues" | "hostTab" | "chats" | "profile";
   match: (pathname: string) => boolean;
   icon: (active: boolean) => ReactNode;
 }[] = [
@@ -51,6 +51,26 @@ const tabs: {
           stroke="currentColor"
           strokeWidth={active ? 2.2 : 1.7}
           strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    key: "venues",
+    href: "/venues",
+    labelKey: "venues",
+    match: (pathname) =>
+      pathname === "/venues" || pathname.startsWith("/venues/"),
+    icon: (active) => (
+      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>
+        <path
+          d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"
+          stroke="currentColor"
+          strokeWidth={active ? 2.2 : 1.7}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill={active ? "currentColor" : "none"}
+          fillOpacity={active ? 0.12 : 0}
         />
       </svg>
     ),
@@ -131,7 +151,7 @@ export function BottomNav() {
       aria-label="Primary"
       className="z-40 w-full shrink-0 border-t border-border bg-card/80 pb-safe backdrop-blur-md"
     >
-      <ul className="grid h-[4.25rem] grid-cols-5 items-end px-1">
+      <ul className="grid h-[4.25rem] grid-cols-6 items-end px-0.5">
         {tabs.map((tab) => {
           const active = tab.match(pathname);
           const isHost = tab.key === "host";
@@ -140,7 +160,7 @@ export function BottomNav() {
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-w-[3.5rem] flex-col items-center gap-0.5 px-1 pb-2 pt-1 text-[10px] font-semibold tracking-wide transition-colors ${
+                className={`flex min-w-[2.75rem] flex-col items-center gap-0.5 px-0.5 pb-2 pt-1 text-[9px] font-semibold tracking-wide transition-colors ${
                   isHost
                     ? "text-primary"
                     : active

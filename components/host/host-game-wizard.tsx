@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { HostVenuePrefillNotice } from "@/components/host/host-venue-prefill-notice";
 import { HostGameProgress } from "@/components/host/host-game-progress";
 import { HostGameStepDetails } from "@/components/host/steps/host-game-step-details";
 import { HostGameStepSport } from "@/components/host/steps/host-game-step-sport";
@@ -14,6 +16,10 @@ import {
   validateHostGameStep,
   type HostGameFormData,
 } from "@/lib/host-game-form";
+import {
+  applyVenueHostPrefill,
+  parseVenueHostPrefill,
+} from "@/lib/venue-host-prefill";
 import { createClient } from "@/lib/supabase/client";
 import type { HkDistrict, Sport } from "@/types/database";
 
@@ -30,10 +36,16 @@ export function HostGameWizard({
 }: HostGameWizardProps) {
   const t = useTranslations("hostGame");
   const router = useRouter();
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<HostGameFormData>(() =>
-    createInitialHostGameFormData(sports, defaultDistrict),
+  const searchParams = useSearchParams();
+  const venuePrefill = useMemo(
+    () => parseVenueHostPrefill(searchParams),
+    [searchParams],
   );
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState<HostGameFormData>(() => {
+    const base = createInitialHostGameFormData(sports, defaultDistrict);
+    return venuePrefill ? applyVenueHostPrefill(base, venuePrefill, sports) : base;
+  });
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -129,10 +141,19 @@ export function HostGameWizard({
 
       <div className="flex-1 px-4 pb-32 pt-4">
         {step === 1 ? (
-          <HostGameStepSport form={formData} sports={sports} onChange={patchForm} />
+          <HostGameStepSport
+            form={formData}
+            sports={sports}
+            onChange={patchForm}
+            prefillVenueName={venuePrefill?.venueName}
+          />
         ) : null}
         {step === 2 ? (
-          <HostGameStepTimeLocation form={formData} onChange={patchForm} />
+          <HostGameStepTimeLocation
+            form={formData}
+            onChange={patchForm}
+            prefillVenueName={venuePrefill?.venueName}
+          />
         ) : null}
         {step === 3 ? (
           <HostGameStepDetails form={formData} onChange={patchForm} />

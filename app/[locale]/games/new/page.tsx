@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "@/lib/redirect";
 import { HostGameWizard } from "@/components/host/host-game-wizard";
@@ -21,15 +22,23 @@ export async function generateMetadata({
 
 export default async function CreateGamePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const query = await searchParams;
+  const qs = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (typeof value === "string") qs.set(key, value);
+  }
+  const nextPath = qs.toString() ? `/games/new?${qs.toString()}` : "/games/new";
 
   const { supabase, user } = await getSessionUser();
   if (!supabase || !user) {
-    return await redirect("/login?next=/games/new");
+    return await redirect(`/login?next=${encodeURIComponent(nextPath)}`);
   }
 
   const [profile, sportsResult] = await Promise.all([
@@ -40,10 +49,16 @@ export default async function CreateGamePage({
   const sports = filterActiveSports((sportsResult.data ?? []) as Sport[]);
 
   return (
-    <HostGameWizard
-      sports={sports}
-      userId={user.id}
-      defaultDistrict={profile.district}
-    />
+    <Suspense
+      fallback={
+        <p className="px-4 py-8 text-sm text-muted">Loading…</p>
+      }
+    >
+      <HostGameWizard
+        sports={sports}
+        userId={user.id}
+        defaultDistrict={profile.district}
+      />
+    </Suspense>
   );
 }

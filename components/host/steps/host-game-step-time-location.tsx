@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { VenuePlacesAutocomplete } from "@/components/host/venue-places-autocomplete";
+import { HostVenuePrefillNotice } from "@/components/host/host-venue-prefill-notice";
 import type { HostGameFormData } from "@/lib/host-game-form";
 import { todayHkDateString } from "@/lib/host-game-form";
 import { HK_DISTRICT_OPTIONS, type HkDistrict } from "@/types/database";
@@ -12,11 +13,13 @@ const fieldClass =
 type HostGameStepTimeLocationProps = {
   form: HostGameFormData;
   onChange: (patch: Partial<HostGameFormData>) => void;
+  prefillVenueName?: string;
 };
 
 export function HostGameStepTimeLocation({
   form,
   onChange,
+  prefillVenueName,
 }: HostGameStepTimeLocationProps) {
   const t = useTranslations("hostGame");
   const minDate = todayHkDateString();
@@ -24,6 +27,10 @@ export function HostGameStepTimeLocation({
 
   return (
     <section className="space-y-6">
+      {prefillVenueName ? (
+        <HostVenuePrefillNotice venueName={prefillVenueName} />
+      ) : null}
+
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
           {t("step2Title")}

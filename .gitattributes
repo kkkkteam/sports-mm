@@ -1,4 +1,4 @@
-# Normalize line endings — stop LF/CRLF warnings on Windows
+# Normalize line endings to LF (avoids CRLF warnings on Windows)
 * text=auto eol=lf
 
 *.{cmd,bat,ps1} text eol=crlf

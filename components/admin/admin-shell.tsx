@@ -6,6 +6,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 const links = [
   { href: "/admin-manage", label: "儀表板", exact: true },
   { href: "/admin-manage/games", label: "場地管理" },
+  { href: "/admin-manage/venues", label: "私人場地" },
   { href: "/admin-manage/messages", label: "留言審核" },
   { href: "/admin-manage/users", label: "用戶管理" },
 ] as const;

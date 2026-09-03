@@ -34,7 +34,6 @@ export function ApplyButton({
   actionState,
   unavailableMessage,
   joinedPaymentStatus,
-  remainingSpots = 1,
   existingApplicationId,
   onWithdraw = false,
   layout = "inline",
@@ -44,7 +43,6 @@ export function ApplyButton({
   actionState?: ApplyActionState;
   unavailableMessage?: string | null;
   joinedPaymentStatus?: JoinedPaymentStatus;
-  remainingSpots?: number;
   existingApplicationId?: string | null;
   onWithdraw?: boolean;
   layout?: "inline" | "footer";
@@ -54,8 +52,6 @@ export function ApplyButton({
   const titleId = useId();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
-  const [requestedSpots, setRequestedSpots] = useState(1);
-  const [spotsWarning, setSpotsWarning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -165,13 +161,6 @@ export function ApplyButton({
     event.preventDefault();
     if (!userId) return;
     setError(null);
-
-    if (!isWaitlist && requestedSpots > remainingSpots) {
-      setSpotsWarning(true);
-      setError(t("spotsRemainingWarning", { remaining: remainingSpots }));
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -182,7 +171,6 @@ export function ApplyButton({
           game_id: gameId,
           applicant_id: userId,
           message: message.trim() || null,
-          guests_count: isWaitlist ? 0 : requestedSpots - 1,
           status: isWaitlist ? "waitlisted" : "pending",
         })
         .select("id, status")
@@ -214,8 +202,6 @@ export function ApplyButton({
         type="button"
         onClick={() => {
           setError(null);
-          setRequestedSpots(1);
-          setSpotsWarning(false);
           setOpen(true);
         }}
         className={footerPrimaryClass}
@@ -232,11 +218,6 @@ export function ApplyButton({
           titleId={titleId}
           loading={loading}
           isWaitlist={isWaitlist}
-          remainingSpots={remainingSpots}
-          requestedSpots={requestedSpots}
-          setRequestedSpots={setRequestedSpots}
-          spotsWarning={spotsWarning}
-          setSpotsWarning={setSpotsWarning}
           message={message}
           setMessage={setMessage}
           error={error}
@@ -311,11 +292,6 @@ function ApplyDialog({
   titleId,
   loading,
   isWaitlist,
-  remainingSpots,
-  requestedSpots,
-  setRequestedSpots,
-  spotsWarning,
-  setSpotsWarning,
   message,
   setMessage,
   error,
@@ -326,11 +302,6 @@ function ApplyDialog({
   titleId: string;
   loading: boolean;
   isWaitlist: boolean;
-  remainingSpots: number;
-  requestedSpots: number;
-  setRequestedSpots: (value: number) => void;
-  spotsWarning: boolean;
-  setSpotsWarning: (value: boolean) => void;
   message: string;
   setMessage: (value: string) => void;
   error: string | null;
@@ -350,23 +321,6 @@ function ApplyDialog({
   }, []);
 
   if (!mounted) return null;
-
-  const canDecrease = requestedSpots > 1;
-  const canIncrease = requestedSpots < remainingSpots;
-
-  function decreaseSpots() {
-    setSpotsWarning(false);
-    setRequestedSpots(Math.max(1, requestedSpots - 1));
-  }
-
-  function increaseSpots() {
-    if (requestedSpots >= remainingSpots) {
-      setSpotsWarning(true);
-      return;
-    }
-    setSpotsWarning(false);
-    setRequestedSpots(requestedSpots + 1);
-  }
 
   return createPortal(
     <div
@@ -393,50 +347,6 @@ function ApplyDialog({
           </p>
 
           <form id="apply-dialog-form" onSubmit={onSubmit} className="mt-6 space-y-4">
-            {!isWaitlist ? (
-              <div>
-                <p className="text-sm font-medium text-muted">
-                  {t("requestedSpotsLabel")}
-                </p>
-                <div className="mt-2 flex items-center justify-center gap-4 rounded-xl border border-line-subtle bg-canvas px-4 py-3">
-                  <button
-                    type="button"
-                    disabled={loading || !canDecrease}
-                    onClick={decreaseSpots}
-                    aria-label={t("decreaseSpots")}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-line-subtle bg-card text-lg font-bold text-foreground transition-colors hover:border-primary/30 hover:bg-primary/8 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    −
-                  </button>
-                  <span
-                    className="min-w-[2.5rem] text-center text-2xl font-black tabular-nums text-foreground"
-                    aria-live="polite"
-                  >
-                    {requestedSpots}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={loading}
-                    onClick={increaseSpots}
-                    aria-label={t("increaseSpots")}
-                    className={[
-                      "flex h-10 w-10 items-center justify-center rounded-full border text-lg font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-40",
-                      canIncrease
-                        ? "border-line-subtle bg-card text-foreground hover:border-primary/30 hover:bg-primary/8"
-                        : "border-line-subtle bg-card text-muted",
-                    ].join(" ")}
-                  >
-                    +
-                  </button>
-                </div>
-                {spotsWarning ? (
-                  <p className="mt-2 text-sm font-medium text-red-600">
-                    {t("spotsRemainingWarning", { remaining: remainingSpots })}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-
             <div>
               <label className="text-sm font-medium text-muted" htmlFor="apply-message">
                 {t("messageLabel")}
