@@ -128,7 +128,9 @@ export async function updateSession(
     path === "/chat" ||
     path.startsWith("/chat/") ||
     path === "/admin-manage" ||
-    path.startsWith("/admin-manage/");
+    path.startsWith("/admin-manage/") ||
+    path === "/venue-admin" ||
+    path.startsWith("/venue-admin/");
 
   if (!user && isProtected) {
     const redirectUrl = request.nextUrl.clone();

@@ -25,6 +25,23 @@ export type HkDistrict =
   | "islands";
 export type VenueType = "public" | "private" | "school" | "club" | "other";
 export type PrivateVenueStatus = "active" | "inactive";
+export type VenueBookingStatus = "pending" | "confirmed" | "rejected" | "cancelled";
+export type VenueBookingPaymentStatus = "unpaid" | "paid";
+
+export const VENUE_BOOKING_STATUS_LABELS: Record<VenueBookingStatus, string> = {
+  pending: "待處理",
+  confirmed: "已確認",
+  rejected: "已拒絕",
+  cancelled: "已取消",
+};
+
+export const VENUE_BOOKING_PAYMENT_STATUS_LABELS: Record<
+  VenueBookingPaymentStatus,
+  string
+> = {
+  unpaid: "未付款",
+  paid: "已付款",
+};
 export type GameStatus = "open" | "full" | "cancelled" | "completed";
 export type CostSplitMode = "all_players" | "joiners_only";
 export type GamePaymentMethod = "on_site" | "transfer" | "both";
@@ -132,6 +149,7 @@ export interface Profile {
   attendance_present_count: number;
   attendance_rate: number | null;
   is_admin: boolean;
+  is_venue_owner: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -178,6 +196,22 @@ export interface PrivateVenue {
   images: string[];
   booking_link: string | null;
   status: PrivateVenueStatus;
+  owner_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VenueBooking {
+  id: string;
+  venue_id: string;
+  user_id: string;
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  status: VenueBookingStatus;
+  total_price: number;
+  payment_status: VenueBookingPaymentStatus;
+  contact_phone: string | null;
   created_at: string;
   updated_at: string;
 }

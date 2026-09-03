@@ -20,6 +20,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     return <>{children}</>;
   }
 
+  if (pathname === "/venue-admin" || pathname.startsWith("/venue-admin/")) {
+    return <>{children}</>;
+  }
+
   const hideTabBar = shouldHideTabBar(pathname);
   const isMapPage = pathname === "/map" || pathname.startsWith("/map/");
 
