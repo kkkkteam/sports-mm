@@ -258,6 +258,8 @@
     "resultCount": "{count} venues",
     "emptyTitle": "No venues match your filters",
     "emptyHint": "Try adjusting search or filters.",
+    "emptyLoadTitle": "No venues loaded",
+    "emptyLoadHint": "Run private_venues_seed.sql and migration 20260903000002_private_venues_rls.sql in Supabase SQL Editor.",
     "clearFilters": "Clear filters",
     "viewDetails": "View details",
     "supportedSports": "Sports",

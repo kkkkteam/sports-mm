@@ -25,7 +25,13 @@ export type VenueListItem = Pick<
 
 const ALL_DISTRICTS = "all" as const;
 
-export function VenuesDirectoryView({ venues }: { venues: VenueListItem[] }) {
+export function VenuesDirectoryView({
+  venues,
+  loadIssue = false,
+}: {
+  venues: VenueListItem[];
+  loadIssue?: boolean;
+}) {
   const t = useTranslations("venuesPage");
   const [query, setQuery] = useState("");
   const [district, setDistrict] = useState<HkDistrict | typeof ALL_DISTRICTS>(
@@ -158,9 +164,20 @@ export function VenuesDirectoryView({ venues }: { venues: VenueListItem[] }) {
 
       {filtered.length === 0 ? (
         <div className="mt-10 rounded-2xl border border-dashed border-line-subtle bg-card px-6 py-16 text-center">
-          <p className="text-base font-semibold text-foreground">{t("emptyTitle")}</p>
-          <p className="mt-2 text-sm text-muted">{t("emptyHint")}</p>
-          {(query || district !== ALL_DISTRICTS || sportFilter) && (
+          {loadIssue && venues.length === 0 ? (
+            <>
+              <p className="text-base font-semibold text-foreground">
+                {t("emptyLoadTitle")}
+              </p>
+              <p className="mt-2 text-sm text-muted">{t("emptyLoadHint")}</p>
+            </>
+          ) : (
+            <>
+              <p className="text-base font-semibold text-foreground">{t("emptyTitle")}</p>
+              <p className="mt-2 text-sm text-muted">{t("emptyHint")}</p>
+            </>
+          )}
+          {(query || district !== ALL_DISTRICTS || sportFilter) && venues.length > 0 ? (
             <button
               type="button"
               onClick={() => {
@@ -172,7 +189,7 @@ export function VenuesDirectoryView({ venues }: { venues: VenueListItem[] }) {
             >
               {t("clearFilters")}
             </button>
-          )}
+          ) : null}
         </div>
       ) : (
         <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

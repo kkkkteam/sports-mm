@@ -258,6 +258,8 @@
     "resultCount": "共 {count} 个场地",
     "emptyTitle": "找不到符合条件的场地",
     "emptyHint": "试试调整搜索或筛选条件。",
+    "emptyLoadTitle": "尚未载入任何场馆",
+    "emptyLoadHint": "请在 Supabase SQL Editor 执行 private_venues_seed.sql，并执行 migration 20260903000002_private_venues_rls.sql 以开放读取权限。",
     "clearFilters": "清除筛选",
     "viewDetails": "查看详情",
     "supportedSports": "支持运动",

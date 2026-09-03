@@ -1,13 +1,19 @@
 # UAT seed
 
-Seed file: `supabase/seed/uat_seed.sql`
+Seed files:
+
+| File | Purpose |
+|------|---------|
+| `supabase/seed/uat_seed.sql` | Members, games, map, chat, applications |
+| `supabase/seed/private_venues_seed.sql` | **30** private venue listings (`private_venues`) |
 
 ## How to run
 
-1. Ensure migrations are applied (init → admin).
+1. Ensure migrations are applied (init → admin → `20260903000001_private_venues.sql`).
 2. Open **Supabase → SQL Editor**.
-3. Paste and run the whole `uat_seed.sql`.
-4. Re-running is OK — it deletes previous UAT rows first.
+3. Paste and run the whole `uat_seed.sql` (optional, for games/chat).
+4. Paste and run `private_venues_seed.sql` for the **場館** directory page.
+5. Re-running is OK — both scripts delete their fixed UUID rows first.
 
 ## Test accounts
 
@@ -44,6 +50,13 @@ Password for all: `UatTest123!`
 - **完成場次** — 羽毛球 completed + attendance + reviews（不顯示於地圖）
 - **對話** — 登入阿明／小欣等看私訊與場次群組
 - **好友** — 已接受 + pending 申請
+
+## Private venues seed (`private_venues_seed.sql`)
+
+- **30** 私人場館（29 上架 `active`、1 下架 `inactive`）
+- 7 種運動各有多個場館（每種運動約 4–6 個可篩選場地，含複合場館）
+- 含示範 `booking_link`（https / tel）及 placeholder 圖片 URL
+- 前台 **場館** Tab（`/venues`）與「我已訂場，立即發起拼場」流程可測
 
 ## Map-visible highlights
 

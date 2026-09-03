@@ -46,9 +46,15 @@ export default async function VenuesPage({
     return (
       <div className="px-4 py-16 text-center">
         <p className="text-sm font-semibold text-red-600">{error.message}</p>
+        <p className="mt-2 text-xs text-muted">
+          若為 permission denied，請在 Supabase 執行 migration{" "}
+          <code className="rounded bg-mist px-1">
+            20260903000002_private_venues_rls.sql
+          </code>
+        </p>
       </div>
     );
   }
 
-  return <VenuesDirectoryView venues={venues} />;
+  return <VenuesDirectoryView venues={venues} loadIssue={venues.length === 0} />;
 }
